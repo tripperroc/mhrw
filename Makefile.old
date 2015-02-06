@@ -1,0 +1,31 @@
+#
+#	Makefile for this SNAP example
+#	- modify Makefile.ex when creating a new SNAP example
+#
+#	implements:
+#		all (default), clean
+#
+
+include ../../Makefile.config
+include Makefile.ex
+include ../Makefile.exmain
+
+DATE=34-2014
+USER_LIST=../../../trowser3/34-2014_master_user_list.json
+TWITTER_GRAPH=../../../trowser3/34-2014_social_graph.json
+MYPYTHONPATH=/usr/local/lib/python2.7/site-packages/
+
+# This setting seemed to yield good results
+# ./mhrw -file:gaydar_snap.graph -balance:.1 -flip:0 -num_swaps:10 -gayweight:1 -labweight:10 -greedy:0 -grad:100000
+
+twitter_graph.pkl: ${USER_LIST} ${TWITTER_GRAPH}
+	python -OO generate_twitter_graph.py ${USER_LIST} ${TWITTER_GRAPH} twitter_graph.pkl
+
+twitter_neighborhood_graph.pkl: ${USER_LIST} ${TWITTER_GRAPH} 
+	python -OO generate_twitter_neighborhood_graph.py ${USER_LIST} twitter_graph.pkl twitter_neighborhood_graph.pkl
+
+gaydar_snap.graph: orientations-34-head.txt  orientations-34-tail-head.txt twitter_graph.pkl
+	export PYTHONPATH=$PYTHONPATH:${MYPYTHONPATH}; python -OO write_snap3.py orientations-34-head.txt orientations-34-tail-head.txt twitter_graph.pkl gaydar_snap.graph 1
+
+orientation-00.txt:
+	export PYTHONPATH=$PYTHONPATH:${MYPYTHONPATH}; export PYTHONIOENCODING=utf-8; python twaydar.py 02-2015_master_user_list.json > orientation-00.txt

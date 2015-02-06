@@ -1,0 +1,11 @@
+*.pkl
+*.json
+*.pyc
+*.pyo
+*.graph
+*.outx
+mhrw
+*.txt
+!orientations-34-head.txt
+!orientations-34-tail-head.txt
+!orientations-34-tail-tail.txt
