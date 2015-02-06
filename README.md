@@ -14,7 +14,7 @@ the location of any python libraries.
 To build the smaller neighborhood graph (consisting of just the
 labeled data and the neighbors of those points), type
 
->export DATE=02-2015;make ${DATE}_gaydar_snap.graph
+>export DATE=02-2015;make ${DATE}_twitter_neighborhood_graph.pkl
 
 To build the larger neighborhood graph, type
 
