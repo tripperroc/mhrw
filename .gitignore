@@ -6,6 +6,7 @@
 *.outx
 mhrw
 *.txt
-!orientations-34-head.txt
-!orientations-34-tail-head.txt
-!orientations-34-tail-tail.txt
+!orientation-02-2015-heldout.txt
+!orientation-02-2015-test.txt
+!orientation-02-2015-train.txt
+
