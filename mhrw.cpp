@@ -15,8 +15,6 @@ class Model {
 
 private:
   PUNGraph p;
-  int * labels;
-  int * temp_labels;
   double * edge_weights;
   double gayweight; // Weight of gay data
   double labweight; // Weight of labeled data
@@ -26,9 +24,13 @@ private:
   double classes_weight;
   double edges_total;
   float edges_divisor;
+  double imbalance_error;
+  double imbalance_error_diff;
+  double edges_diff;
   
 public:
-
+  int * temp_labels;
+  int * labels;
   double gay_fraction;
   double target_gay_fraction;
   
@@ -97,7 +99,8 @@ public:
     //double edges_part = edges_weight * total / divisor;
     double edges_part = edges_weight * edges_total /  edges_divisor;
     gay_fraction = double(total_gay) / double(p->GetNodes());
-    double classes_part = classes_weight * (target_gay_fraction - gay_fraction)* (target_gay_fraction - gay_fraction);
+    imbalance_error = target_gay_fraction - gay_fraction;
+    double classes_part = classes_weight * imbalance_error * imbalance_error;
     cout << edges_part << " " << classes_part << " " << total_gay << " " << gay_fraction << " ";
     return -edges_part - classes_part ;
   }
@@ -112,15 +115,15 @@ public:
   }
 	 
   double getLogDiff (int num_swaps, int * changes) {
-    double subtotal = 0;
+    double edges_diff = 0;
     double gay_diff = 0;
     for (int i = 0; i < num_swaps; i++) {
       TInt ego = changes[i];
       if (temp_labels[ego] != labels[ego]) {
-	TFloat ego_factor = 1;
+	TFlt ego_factor = 1;
 	if (temp_labels[ego] == 1) {
 	  gay_diff += 1;
-	  ego_factor = gay_weight;
+	  ego_factor = gayweight;
 	}
 	else gay_diff -= 1;
 	TUNGraph::TNodeI n = p->GetNI(ego);
@@ -131,17 +134,27 @@ public:
 	  double neighbor_weight = edgeweight.GetDat(TPair<TInt, TInt>(min(ego,alter), max(ego,alter)));
 	  double difference = diff(ego,alter, labels) - diff(ego,alter,temp_labels);
 	  
-	  subtotal +=  neighbor_weight * difference / edge_weights[ego];
-	  if (temp_labels[ego] == 0 || temp_labels[ego] == labels[ego]) {
-	    
-	    subtotal +=  neighbor_weight * difference / edge_weights[alter];
+	  edges_diff += ego_factor * neighbor_weight * difference / edge_weights[ego];
+	  if (temp_labels[alter] == 0 || temp_labels[alter] == labels[alter]) {
+	    TFlt alter_factor = 1;
+	    if (temp_labels[alter] == 1) {
+	      alter_factor = gayweight;
+	    }
+	    if (alter < numlabels) {
+	      alter_factor *= labweight;
+	    }
+	    edges_diff +=  alter_factor * neighbor_weight * difference / edge_weights[alter];
 	  }
 	}
 
       }
       
     }
-    return 0;
+    TFlt new_gay_frac = gay_fraction + gay_diff / double(p->GetNodes());
+    TFlt new_imbalance_error = target_gay_fraction - new_gay_frac;
+    imbalance_error_diff = new_imbalance_error * new_imbalance_error - imbalance_error * imbalance_error;
+    edges_diff = classes_weight;
+    return  edges_weight * edges_diff /  edges_divisor + classes_weight * imbalance_error_diff;
 
   }
   
@@ -227,8 +240,8 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
   get_nodes (file, labels, numnodes);
   
   file >> s >> numtestlabels;
-  int test_labels[numtestlabels];
-  int diff = get_nodes (file, test_labels, numtestlabels);
+  int temp_labels[numtestlabels];
+  int diff = get_nodes (file, temp_labels, numtestlabels);
   double numPos = (numtestlabels + diff) / 2.0;
   double numNeg = (numtestlabels - diff) / 2.0;
   cout << numtestlabels << " " << numPos << " " << numNeg <<  endl;
@@ -249,9 +262,9 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     /////////////////////////////////////
     // Make a copy of the current labels
     //
-    int * newlabels = new int[numnodes];
+    //int * temp_labels = new int[numnodes];
     for (int i = 0; i< numnodes; i++) {
-      newlabels[i] = labels[i];
+      model.temp_labels[i] = model.labels[i];
       
     }
 
@@ -268,20 +281,21 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     }
     else balance = ballance;
     for (int i = 0; i < num_swaps; i++) {
+      changes[i] += numlabels;
       if (flip == 1) {
-	newlabels[numlabels + changes[i]] *= -1;
+	model.temp_labels[changes[i]] *= -1;
       }
       else {
 	if (my_random.GetUniDev () < balance) {
-	  newlabels[numlabels + changes[i]] = 1;
+	  model.temp_labels[changes[i]] = 1;
 	  gayswap++;
 	}
 	else {
-	  newlabels[numlabels + changes[i]] = -1;
+	  model.temp_labels[changes[i]] = -1;
 	  straightswap++;
 	}
-	condiff *= ((.5 + (balance - .5) * labels[numlabels + changes[i]]) / 
-		    (.5 + (balance - .5) * newlabels[numlabels + changes[i]]));
+	condiff *= ((.5 + (balance - .5) * model.labels[changes[i]]) / 
+		    (.5 + (balance - .5) * model.temp_labels[changes[i]]));
       }
      
     }
@@ -293,8 +307,8 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     int correctPos = 0;
     int correctNeg = 0;
     for (int i = numlabels; i < numlabels + numtestlabels; i++) {
-      if (test_labels[i - numlabels] == labels[i]) {
-	if (labels[i] == 1) {
+      if (temp_labels[i - numlabels] == model.labels[i]) {
+	if (model.labels[i] == 1) {
 	  correctPos += 1;
 	}
 	else {
@@ -307,7 +321,7 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     //
     // Determine whether or not to swap
     //
-    double newProb = model.getLogProb(newlabels);
+    double newProb = model.getLogProb(model.temp_labels);
     double probRat = exp(TFlt(newProb - lastProb)) * condiff ;
     TFlt prob = my_random.GetUniDev ();
     if (iterations % 1 == 0) {
@@ -329,13 +343,16 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     */
     
     if ((greedy == 1 && exp(TFlt(newProb - lastProb)) > 1) || (greedy == 0 && prob < probRat)) {
-	delete labels;
-	labels = newlabels;
-	lastProb = newProb;
+      //delete labels;
+      int * swap = model.labels;
+      model.labels = model.temp_labels;
+      model.temp_labels = swap;
+      lastProb = newProb;
     }
-    else {
-      delete newlabels;
+    /*else {
+      delete temp_labels;
     }
+    */
     minProb = lastProb < minProb ? lastProb : minProb;
   }
   

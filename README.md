@@ -9,10 +9,20 @@ Requires:
 
 This repo contains the necessary labeled data. To run, clone this repo
 into the examples directory under snap. Then edit the Makefile with the
-location of the twitter graph and user list, and the location of any
-python libraries. To build the input to the MHRW, type
+the location of any python libraries.
 
-> make gaydar_snap.graph
+To build the smaller neighborhood graph (consisting of just the
+labeled data and the neighbors of those points), type
+
+>export DATE=02-2015;make ${DATE}_gaydar_snap.graph
+
+To build the larger neighborhood graph, type
+
+>export DATE=02-2015;make ${DATE}_gaydar_snap.graph
+
+To build the input to the MHRW, type
+
+> export DATE=02-2015; make ${DATE}_gaydar_snap.graph
 
 To compile the mhrw, type
 
