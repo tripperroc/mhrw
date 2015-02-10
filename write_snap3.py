@@ -33,18 +33,23 @@ def label_by_voting (u):
     #
     # Create labels
     #
+    logfile = file("labeling_log.txt", "w")
     while len(unlabeled) > 0:
         (ego, score) = unlabeled.popitem()
         if score == 0:
             break
         gay_alters = 0
         straight_alters = 0
+        gay_list = list()
+        straight_list = list()
         for alter in u.neighbors(ego):
             if "orientation" in u.node[alter]:
                 if u.node[alter]["orientation"] == 1:
                     gay_alters += 1
+                    gay_list.append(alter)
                 else:
                     straight_alters += 1
+                    straight_list.append(alter)
             else:
                 priority = -unlabeled[alter]
                 fneighbs = float(len(u.neighbors(alter)))
@@ -80,18 +85,23 @@ def label_by_weighted_voting (u, ep):
     #
     # Create labels
     #
+    logfile = file("labeling_log.txt", "w")
     while len(unlabeled) > 0:
         (ego, score) = unlabeled.popitem()
         if score == 0:
             break
         gay_alters = 0.0
         straight_alters = 0.0
+        gay_list = list()
+        straight_list = list()
         for alter in u.neighbors(ego):
             if "orientation" in u.node[alter]:
                 if u.node[alter]["orientation"] == 1:
                     gay_alters += u[ego][alter]["embeddedness"]**ep
+                    gay_list.append(alter)
                 else:
                     straight_alters += u[ego][alter]["embeddedness"] **ep
+                    straight_list.append(alter)
             else:
                 priority = -unlabeled[alter]
                 total_weight_alters = 0.0
@@ -102,10 +112,14 @@ def label_by_weighted_voting (u, ep):
                 unlabeled[alter] = priority
         if gay_alters > straight_alters:
             u.node[ego]["orientation"] = 1
+            logfile.write ("GAY\t\t");
         else:
             u.node[ego]["orientation"] = -1
+            logfile.write ("STRAIGHT\t");
+        logfile.write ("%d: degree: %d, priority: %f, gay: %s; straight %s\n" % (ego, u.degree(ego), score, str(gay_list), str(straight_list)))
+        
         #priority = -float(count)/float(len(u.neighbors(ego)))
-
+    logfile.close()
     return u
 
 def set_orientation_by_file (filename, field_name, u):
@@ -126,13 +140,13 @@ def set_orientation_by_file (filename, field_name, u):
     test_data.close()
     return u
 
-def write_to_snap (file_name, v, node_trans, node_untrans, labeled, test_labels):
+def write_to_snap (file_name, v, node_trans, node_untrans, labeled, test_labels, ep):
     snap_graph = file (file_name, "w")
 
     snap_graph.write ("num_nodes %d\n" % len(v))
     snap_graph.write ("num_edges %d\n" % len(v.edges()))
     for x,y in v.edges():
-        snap_graph.write ("%d %d %f\n" % (node_trans[x],node_trans[y],v[x][y]["embeddedness"]))
+        snap_graph.write ("%d %d %f\n" % (node_trans[x],node_trans[y],v[x][y]["embeddedness"]**ep))
     snap_graph.write ("num_labeled %d\n" % len(labeled))
     #for label in labeled:
     #    snap_graph.write ("%d\n" % label)
@@ -281,7 +295,7 @@ def main():
 
 
     
-    write_to_snap (sys.argv[4], u, node_trans, node_untrans, labeled, test_labels)
+    write_to_snap (sys.argv[4], u, node_trans, node_untrans, labeled, test_labels, float(sys.argv[5]))
     
 
 if __name__ == "__main__":

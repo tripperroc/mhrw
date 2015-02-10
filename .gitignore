@@ -9,4 +9,6 @@ mhrw
 !orientation-02-2015-heldout.txt
 !orientation-02-2015-test.txt
 !orientation-02-2015-train.txt
+out.old
+out.new
 

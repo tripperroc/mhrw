@@ -6,6 +6,7 @@
 #		all (default), clean
 #
 
+
 include ../../Makefile.config
 include Makefile.ex
 include ../Makefile.exmain
@@ -24,11 +25,18 @@ ${DATE}_twitter_graph.pkl: ${DATE}_master_user_list.json ${DATE}_social_graph.js
 ${DATE}_twitter_neighborhood_graph.pkl: orientation-${DATE}.txt ${DATE}_twitter_graph.pkl 
 	python -OO generate_twitter_neighborhood_graph.py orientation-${DATE}.txt ${DATE}_twitter_graph.pkl ${DATE}_twitter_neighborhood_graph.pkl
 
-${DATE}_gaydar_snap.graph: orientation-${DATE}-train.txt  orientation-${DATE}-test.txt ${DATE}_twitter_graph.pkl
+${DATE}_gaydar_snap.graph ${DATE}_labeled_twitter_graph.pkl: orientation-${DATE}-train.txt  orientation-${DATE}-test.txt ${DATE}_twitter_graph.pkl
 	export PYTHONPATH=$PYTHONPATH:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.txt orientation-${DATE}-test.txt ${DATE}_twitter_graph.pkl ${DATE}_gaydar_snap.graph 1 ${DATE}_labeled_twitter_graph.pkl ${DATE}_twitter_snap_translations.pkl
+	touch ${DATE}_gaydar_snap.graph ${DATE}_labeled_twitter_graph.pkl
 
 ${DATE}_gaydar_neighborhood_snap.graph: orientation-${DATE}-train.txt  orientation-${DATE}-test.txt ${DATE}_twitter_neighborhood_graph.pkl
 	export PYTHONPATH=$PYTHONPATH:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.txt orientation-${DATE}-test.txt ${DATE}_twitter_neighborhood_graph.pkl ${DATE}_gaydar_neighborhood_snap.graph 1 ${DATE}_labeled_neighborhood_graph.pkl ${DATE}_twitter_snap_neighborhood_translations.pkl
 
 orientation-${DATE}.txt:
 	export PYTHONPATH=$PYTHONPATH:${MYPYTHONPATH}; export PYTHONIOENCODING=utf-8; python twaydar.py ${DATE}_master_user_list.json > orientation-${DATE}.txt
+
+${DATE}_twitter_clique_graph.pkl: ${DATE}_labeled_twitter_graph.pkl
+	python -OO generate_max_clique_graph.py ${DATE}_labeled_twitter_graph.pkl ${DATE}_twitter_clique_graph.pkl
+
+${DATE}_gaydar_clique_snap.graph: orientation-${DATE}-train.txt  orientation-${DATE}-test.txt ${DATE}_twitter_clique_graph.pkl
+	export PYTHONPATH=$PYTHONPATH:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.txt orientation-${DATE}-test.txt ${DATE}_twitter_clique_graph.pkl ${DATE}_gaydar_clique_snap.graph 1 ${DATE}_labeled_twitter_clique_graph.pkl ${DATE}_twitter_snap_clique_translations.pkl

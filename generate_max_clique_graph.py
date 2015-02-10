@@ -1,10 +1,10 @@
 
-# Prepares data for input to snap-base mhrw system 
+# Generates max clique bipartite graph from a graph.
 # See makefile for default arguments
 
 # usage:
-#python write_snap.py [labeled_users] [all_users] [test_users] [graph_data] [snap_output]
-#
+# python generate_max_clique_graph.py [source_graph] [dest_graph]
+
 import sys
 import re
 import math
@@ -66,7 +66,16 @@ def main():
     print "Straight max cliques: %d" % len(straight_cliques)
     print "Intersection: %d" % len(straight_cliques & gay_cliques)
    
-    
+    for ego in u:
+        if "orientations" in u.node[ego]:
+            B.node[ego]["orientation"] = u.node[ego]["orientation"]
 
+    for (ego, alter) in B.edges():
+        B[ego][alter]["embeddedness"] = 1.0;
+        
+    bipartite_output_file = file (sys.argv[2], "w")
+    pickle.dump(B, bipartite_output_file)
+    bipartite_output_file.close()
+    
 if __name__ == "__main__":
     main()
