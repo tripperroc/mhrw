@@ -4,6 +4,8 @@
 *.pyo
 *.graph
 *.outx
+*.out
+*.err
 mhrw
 *.txt
 !orientation-02-2015-heldout.txt

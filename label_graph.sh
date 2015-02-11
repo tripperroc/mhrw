@@ -30,10 +30,8 @@
 #SBATCH -n 1
 
 # Job memory requirements in MB
-#SBATCH --mem-per-cpu=2000
+#SBATCH --mem-per-cpu=10000
 
-#SBATCH -o c_$date_$k_$ep_$name.out
-#SBATCH -e c_$date_$k_$ep_$name.err
 
 # Your job script goes below this line.
 export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; make ${DATE}_$5_snap.${LABEL}.graph

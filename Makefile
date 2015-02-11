@@ -14,7 +14,7 @@ include ../Makefile.exmain
 #DATE=34-2014
 #USER_LIST=../../../trowser3/34-2014_master_user_list.json
 #TWITTER_GRAPH=../../../trowser3/34-2014_social_graph.json
-MYPYTHONPATH=/usr/local/lib/python2.7/site-packages/
+MYPYTHONPATH=/home/choman/.local/lib/python2.6/site-packages
 #LABEL=your_label
 #K=k-fold-number
 #EP=1

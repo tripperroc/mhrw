@@ -74,7 +74,9 @@ def build_neighbor_graph (labeled_data_name, graph_pkl_name):
         
         ego = int(key)
         if ego in u:
-            neighbors = neighbors | set(u.neighbors(ego)) | {ego}
+            egoset = set()
+            egoset.add(ego)
+            neighbors = neighbors | set(u.neighbors(ego)) | egoset
             #print len(neighbors)
 
     labeled_data.close()
