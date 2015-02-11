@@ -14,8 +14,8 @@ include ../Makefile.exmain
 #DATE=34-2014
 #USER_LIST=../../../trowser3/34-2014_master_user_list.json
 #TWITTER_GRAPH=../../../trowser3/34-2014_social_graph.json
-#MYPYTHONPATH=/home/choman/.local/lib/python2.6/site-packages
-MYPYTHONPATH=/usr/local/lib/python2.7/site-packages/
+MYPYTHONPATH=/home/choman/.local/lib/python2.6/site-packages
+#MYPYTHONPATH=/usr/local/lib/python2.7/site-packages/
 #LABEL=your_label
 #K=k-fold-number
 #EP=1
@@ -30,11 +30,11 @@ ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl: orientation-${DATE}.txt ${DATE}
 	python -OO generate_twitter_neighborhood_graph.py orientation-${DATE}.txt ${DATE}_twitter_graph.${LABEL}.pkl ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl
 
 ${DATE}_gd_snap.${LABEL}.graph ${DATE}_labeled_twitter_graph.${LABEL}.pkl: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_twitter_graph.${LABEL}.pkl
-	export PYTHONPATH=$PYTHONPATH:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_graph.${LABEL}.pkl ${DATE}_gd_snap.${LABEL}.graph ${EP} ${DATE}_labeled_twitter_graph.${LABEL}.pkl ${DATE}_twitter_snap_translations.${LABEL}.pkl
+	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_graph.${LABEL}.pkl ${DATE}_gd_snap.${LABEL}.graph ${EP} ${DATE}_labeled_twitter_graph.${LABEL}.pkl ${DATE}_twitter_snap_translations.${LABEL}.pkl
 	touch ${DATE}_gd_snap.${LABEL}.graph ${DATE}_labeled_twitter_graph.${LABEL}.pkl
 
 ${DATE}_gd_neighborhood_snap.${LABEL}.graph  ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl
-	export PYTHONPATH=$PYTHONPATH:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl ${DATE}_gd_neighborhood_snap.${LABEL}.graph ${EP} ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl ${DATE}_twitter_snap_neighborhood_translations.${LABEL}.pkl
+	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl ${DATE}_gd_neighborhood_snap.${LABEL}.graph ${EP} ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl ${DATE}_twitter_snap_neighborhood_translations.${LABEL}.pkl
 	touch ${DATE}_gd_neighborhood_snap.${LABEL}.graph  ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl
 
 orientation-${DATE}.txt:
@@ -44,10 +44,10 @@ ${DATE}_twitter_clique_graph.${LABEL}.pkl: ${DATE}_labeled_twitter_graph.${LABEL
 	python -OO generate_max_clique_graph.py ${DATE}_labeled_twitter_graph.${LABEL}.pkl ${DATE}_twitter_clique_graph.${LABEL}.pkl
 
 ${DATE}_gd_clique_snap.graph: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl
-	export PYTHONPATH=$PYTHONPATH:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl ${DATE}_gd_clique_snap.${LABEL}.graph ${EP} ${DATE}_labeled_twitter_clique_graph.${LABEL}.pkl ${DATE}_twitter_snap_clique_translations.${LABEL}.pkl
+	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl ${DATE}_gd_clique_snap.${LABEL}.graph ${EP} ${DATE}_labeled_twitter_clique_graph.${LABEL}.pkl ${DATE}_twitter_snap_clique_translations.${LABEL}.pkl
 
 ${DATE}_neighborhood_clique_graph.${LABEL}.pkl: ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl
 	python -OO generate_max_clique_graph.py ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl ${DATE}_neighborhood_clique_graph.${LABEL}.pkl
 
 ${DATE}_gd_neighborhood_clique_snap.graph: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_neighborhood_clique_graph.${LABEL}.pkl
-	export PYTHONPATH=$PYTHONPATH:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_neighborhood_clique_graph.${LABEL}.pkl ${DATE}_gd_neighborhood_clique_snap.${LABEL}.graph ${EP} ${DATE}_labeled_neighborhood_clique_graph.${LABEL}.pkl ${DATE}_neighborhood_Snap_clique_translations.${LABEL}.pkl
+	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_neighborhood_clique_graph.${LABEL}.pkl ${DATE}_gd_neighborhood_clique_snap.${LABEL}.graph ${EP} ${DATE}_labeled_neighborhood_clique_graph.${LABEL}.pkl ${DATE}_neighborhood_Snap_clique_translations.${LABEL}.pkl

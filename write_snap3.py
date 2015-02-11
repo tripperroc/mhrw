@@ -389,8 +389,8 @@ def main():
     #u = label_by_weighted_voting (u, float(sys.argv[5]))
     u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled)
     dump_tests (u, test_labeled)
-    #u = label_by_revoting (u, float(sys.argv[5]), test_labeled)
-    #dump_tests (u, test_labeled)
+    u = label_by_revoting (u, float(sys.argv[5]), test_labeled)
+    dump_tests (u, test_labeled)
     
     write_to_snap (sys.argv[4], u, node_trans, node_untrans, labeled, test_labels, float(sys.argv[5]))
     
