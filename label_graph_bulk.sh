@@ -9,7 +9,7 @@ do
             do
 		for init in 2 3 4
 		do
-		    prop in cons disc
+		    prop in 0 1
                     do
 			sbatch -o c_${d}_${k}_${ep}_${name}_${init}_${prop}.out -e c_${d}_${k}_${ep}_${name}_${init}_${prop}.err label_graph.sh ${d} ${k} ${ep}_${k} ${ep} ${name} ${init} ${prop}
                     done
