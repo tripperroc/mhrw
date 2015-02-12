@@ -124,6 +124,14 @@ def label_by_weighted_voting (u, ep):
 
 def label_by_weighted_voting2 (u, ep, test_labeled):
 
+    gay_labeled_gay = 0
+    gay_labeled_straight = 0
+    gay_unlabeled = 0
+    straight_labeled_straight = 0
+    straight_labeled_gay = 0
+    straight_unlabeled = 0
+    straight_count = 0
+    gay_count = 0
     #################
     #
     # Initialize priorities
@@ -176,11 +184,25 @@ def label_by_weighted_voting2 (u, ep, test_labeled):
         if u.node[ego]["gay_weight"] > u.node[ego]["straight_weight"]:
             u.node[ego]["orientation"] = 1
             logfile.write ("GAY\t\t");
+            gay_count += 1
         else:
             u.node[ego]["orientation"] = -1
             logfile.write ("STRAIGHT\t");
-        logfile.write ("%d: degree: %d, priority: %f, gay: %s; straight %s\n" % (ego, u.degree(ego), score, str(gay_list), str(straight_list)))
+            straight_count += 1
         
+        if ego in test_labeled:
+            if u.node[ego]["orientation"] == 1:
+                if u.node[ego]["test_orientation"] == 1:
+                    gay_labeled_gay += 1
+                else:
+                    straight_labeled_gay += 1
+            else:
+                if u.node[ego]["test_orientation"] == 1:
+                    gay_labeled_straight += 1
+                else:
+                    straight_labeled_straight += 1
+        logfile.write ("%d: degree: %d, priority: %f, gay: %s; straight %s\n" % (ego, u.degree(ego), score, str(gay_list), str(straight_list)))
+        print "%d %d %f %d %d %d %d %d %d"  % (ego, u.degree(ego) , u.node[ego]["total_weight"], gay_count, straight_count, gay_labeled_gay, gay_labeled_straight, straight_labeled_gay, straight_labeled_straight)
         #priority = -float(count)/float(len(u.neighbors(ego)))
     logfile.close()
 
@@ -220,6 +242,7 @@ def dump_tests (u, test_labeled):
 
 def label_by_revoting (u, ep, test_labeled):
 
+    
     #################
     #
     # Initialize priorities
@@ -227,7 +250,10 @@ def label_by_revoting (u, ep, test_labeled):
     tolabel = pqdict.PQDict()
     for ego in u:
         if "total_weight" in u.node[ego]:
-            tolabel[ego] = u.node[ego]["orientation"] * (u.node[ego]["gay_weight"] - u.node[ego]["straight_weight"])/u.node[ego]["total_weight"];
+            tolabel[ego] = u.node[ego]["orientation"] * (u.node[ego]["gay_weight"] - u.node[ego]["straight_weight"])/u.node[ego]["total_weight"]
+            #print ego
+            #sys.stdout.write ("%d %d %f %f %f\n" % (ego, u.node[ego]["orientation"], u.node[ego]["gay_weight"], u.node[ego]["straight_weight"], u.node[ego]["total_weight"]))
+            
 
 
     #################
@@ -248,8 +274,7 @@ def label_by_revoting (u, ep, test_labeled):
         u.node[ego]["orientation"] *= -1;
         tolabel[ego] = u.node[ego]["orientation"] * (u.node[ego]["gay_weight"] - u.node[ego]["straight_weight"])/u.node[ego]["total_weight"];
 
-    
-        return u
+    return u
 
 def set_orientation_by_file (filename, field_name, u):
     test_data = file(filename)
