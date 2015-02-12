@@ -543,7 +543,7 @@ def main():
     #u = label_by_voting (u)
     #u = label_by_weighted_voting (u, float(sys.argv[5]))
     #u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled)
-    u = label_by_weighted_voting3 (u, float(sys.argv[5]), test_labeled)
+    u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled)
     dump_tests (u, test_labeled)
     u = label_by_revoting (u, float(sys.argv[5]), test_labeled)
     dump_tests (u, test_labeled)

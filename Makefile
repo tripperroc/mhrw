@@ -8,7 +8,8 @@
 
 
 include ../../Makefile.config
-include Makefile.ex
+#include Makefile.ex
+include Makefile.newty
 include ../Makefile.exmain
 
 #DATE=34-2014
