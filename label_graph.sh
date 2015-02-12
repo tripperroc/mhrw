@@ -34,6 +34,6 @@
 
 
 # Your job script goes below this line.
-#export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; export INIT=$5; export PROP=$6; make ${DATE}_gd_clique_snap.${LABEL}.${INIT}.${PROP}.prop
+#export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; export INIT=$5; export PROP=$6; make ${DATE}_gd_snap.${LABEL}.${INIT}.${PROP}.prop
 export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; export INIT=$5; export PROP=$6; make ${DATE}_gd_snap.${LABEL}.graph
 
