@@ -349,7 +349,7 @@ def dump_tests (u, test_labeled):
 
     
     for ego in test_labeled:
-        if "orientation" in u.node[ego]:
+        if "orientation" in u.node[ego] and  u.node[ego]["test_orientation"] !=0:
             if u.node[ego]["orientation"] == 1:
                 if u.node[ego]["test_orientation"] == 1:
                     gay_labeled_gay += 1
@@ -380,10 +380,17 @@ def label_by_revoting (u, ep, test_labeled):
     tolabel = pqdict.PQDict()
     for ego in u:
         if "total_weight" in u.node[ego]:
+            if u.node[ego]["orientation"] == 0:
+                if u.node[ego]["gay_weight"] > u.node[ego]["straight_weight"]:
+                    u.node[ego]["orientation"] = -1
+                elif u.node[ego]["gay_weight"] < u.node[ego]["straight_weight"]:
+                    u.node[ego]["orientation"] = 1
+        
             tolabel[ego] = u.node[ego]["orientation"] * (u.node[ego]["gay_weight"] - u.node[ego]["straight_weight"])/u.node[ego]["total_weight"]
-            #print ego
-            #sys.stdout.write ("%d %d %f %f %f\n" % (ego, u.node[ego]["orientation"], u.node[ego]["gay_weight"], u.node[ego]["straight_weight"], u.node[ego]["total_weight"]))
+                #print ego
+            sys.stdout.write ("%d %d %f %f %f\n" % (ego, u.node[ego]["orientation"], u.node[ego]["gay_weight"], u.node[ego]["straight_weight"], u.node[ego]["total_weight"]))
             
+
 
 
     #################
@@ -397,14 +404,21 @@ def label_by_revoting (u, ep, test_labeled):
             break
         for alter in u.neighbors(ego):
             if "total_weight" in u.node[alter]:
-                u[alter]["gay_weight"] -= u.node[ego]["orientation"] * u.node[ego][alter]["embeddedness"]**ep
-                u[alter]["straight_weight"] += u.node[ego]["orientation"] * u.node[ego][alter]["embeddedness"]**ep
+                u.node[alter]["gay_weight"] -= u.node[ego]["orientation"] * u[ego][alter]["embeddedness"]**ep
+                u.node[alter]["straight_weight"] += u.node[ego]["orientation"] * u[ego][alter]["embeddedness"]**ep
+
+                if u.node[alter]["orientation"] == 0:
+                    if u.node[alter]["gay_weight"] > u.node[alter]["straight_weight"]:
+                        u.node[alter]["orientation"] = -1
+                    elif u.node[alter]["gay_weight"] < u.node[alter]["straight_weight"]:
+                        u.node[alter]["orientation"] = 1
                 tolabel[alter] = u.node[alter]["orientation"] * (u.node[alter]["gay_weight"] - u.node[alter]["straight_weight"])/u.node[alter]["total_weight"];
                 
-        u.node[ego]["orientation"] *= -1;
+        u.node[ego]["orientation"] *= -1
         tolabel[ego] = u.node[ego]["orientation"] * (u.node[ego]["gay_weight"] - u.node[ego]["straight_weight"])/u.node[ego]["total_weight"];
-
+        print "%d %f" % (ego, score)
     return u
+
 
 def set_orientation_by_file (filename, field_name, u):
     test_data = file(filename)
@@ -545,8 +559,8 @@ def main():
     #u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled)
     u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled)
     dump_tests (u, test_labeled)
-    u = label_by_revoting (u, float(sys.argv[5]), test_labeled)
-    dump_tests (u, test_labeled)
+    #u = label_by_revoting (u, float(sys.argv[5]), test_labeled)
+    #dump_tests (u, test_labeled)
     
     write_to_snap (sys.argv[4], u, node_trans, node_untrans, labeled, test_labels, float(sys.argv[5]))
     

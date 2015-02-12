@@ -20,6 +20,7 @@ private:
   int numlabels;
   THash<TPair<TInt, TInt>, float> edgeweight;
   int numtestlabels;
+  int discrete;
   
 public:
   double * new_labels;
@@ -28,7 +29,8 @@ public:
   double gay_fraction;
   double target_gay_fraction;
   
-  Model (PUNGraph p, double * labels, double * new_labels, int numlabels, THash<TPair<TInt, TInt>, float> edgeweight, int numtestlabels, int * test_labels): p(p), labels(labels), new_labels(new_labels), numlabels(numlabels), edgeweight(edgeweight), numtestlabels(numtestlabels), test_labels(test_labels) {
+  
+  Model (PUNGraph p, double * labels, double * new_labels, int numlabels, THash<TPair<TInt, TInt>, float> edgeweight, int numtestlabels, int * test_labels, int discrete): p(p), labels(labels), new_labels(new_labels), numlabels(numlabels), edgeweight(edgeweight), numtestlabels(numtestlabels), test_labels(test_labels), discrete(discrete) {
     edge_weights = new double[p->GetNodes()];   
     
     for (TUNGraph::TNodeI n = p->BegNI(); n != p->EndNI(); n++) {
@@ -77,6 +79,7 @@ public:
 	  double neighbor_weight = edgeweight.GetDat(TPair<TInt, TInt>(min(ego,alter), max(ego,alter)));
 	  new_labels[ego] += neighbor_weight * labels[alter]/edge_weights[ego];
 	}
+	if (discrete == 1) new_labels[ego] = new_labels[ego] > 0 ? 1 : -1;
 	double duh = labels[ego]-new_labels[ego];
 	duh = duh < 0 ? -duh : duh;
 	total_err += duh;
@@ -101,8 +104,8 @@ public:
 	 <<  gay_labeled_gay << " "
 	 <<  gay_labeled_straight << " "
 	 <<  gay_unlabeled << " "
-	 <<  straight_labeled_straight << " "
 	 <<  straight_labeled_gay  << " "
+	 <<  straight_labeled_straight << " "
 	 <<  straight_unlabeled << " "
 	 <<  endl;
     
@@ -118,15 +121,17 @@ public:
 /*
  * Loads node data from input file
  */
-int get_nodes (ifstream & file, double * inf, double * new_inf,  int numnodes, int numlabels) {
+int get_nodes (ifstream & file, double * inf, double * new_inf,  int numnodes, int numlabels, int all) {
   int total = 0;
   for (int j = 0; j < numnodes; j++) {
     file >> inf[j];
     new_inf[j] = inf[j];
     total += inf[j];
   }
-  for (int j = numlabels; j < numnodes; j++) {
-    new_inf[j] = inf[j] = 0.0;
+  if (all == 0) {
+    for (int j = numlabels; j < numnodes; j++) {
+      new_inf[j] = inf[j] = 0.0;
+    }
   }
   return total;
 }
@@ -144,7 +149,7 @@ int get_nodes (ifstream & file, int * inf, int numlabels) {
 /*
  * Initialize and run the sampling loop
  */
-void run_mhrw ( const char * input_name) {
+void run_mhrw ( const char * input_name, int all, int discrete) {
 
   ////////////////////////
   //
@@ -186,7 +191,7 @@ void run_mhrw ( const char * input_name) {
   cout << "num_labels: " << numlabels << endl;
   double * labels = new double[numnodes];
   double * newlabels = new double[numnodes];
-  get_nodes (file, labels, newlabels, numnodes, numlabels);
+  get_nodes (file, labels, newlabels, numnodes, numlabels, all);
   
   file >> s >> numtestlabels;
   cout << "num_test_labels: " << numtestlabels << endl;
@@ -201,17 +206,17 @@ void run_mhrw ( const char * input_name) {
   double numNeg = (numtestlabels - diff) / 2.0;
   cout << numtestlabels << " " << numPos << " " << numNeg <<  endl;
 
-  Model model (g, labels, newlabels, numlabels, edgeweight, numtestlabels, test_labels);
+  Model model (g, labels, newlabels, numlabels, edgeweight, numtestlabels, test_labels, discrete);
 
-  
+  int reps = 0;
   //////////////////////////////
   // Main loop
   //
   double err;
   do {
     err = model.tic();
-
-  } while (err > 1);
+    reps++;
+  } while (err > 1 && reps < 10000);
  
 }
 
@@ -226,6 +231,12 @@ int main(int argc, char* argv[]) {
   const TStr input_name = Env.GetIfArgPrefixStr 
     ("-file:", "", "Input graph filename, without .graph extension");
 
+  const TInt all = Env.GetIfArgPrefixInt 
+    ("-all:", 1, "1 = yes use precomputed labels. 0 = only true labels.");
+
+  const TInt discrete = Env.GetIfArgPrefixInt 
+    ("-discrete:", 0, "1 = yes flip. 0 = only true labels.");
+
   
-  run_mhrw (input_name());
+  run_mhrw (input_name(), all, discrete);
 }

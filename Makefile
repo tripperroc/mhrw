@@ -47,6 +47,12 @@ ${DATE}_twitter_clique_graph.${LABEL}.pkl: ${DATE}_labeled_twitter_graph.${LABEL
 ${DATE}_gd_clique_snap.graph: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl
 	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl ${DATE}_gd_clique_snap.${LABEL}.graph ${EP} ${DATE}_labeled_twitter_clique_graph.${LABEL}.pkl ${DATE}_twitter_snap_clique_translations.${LABEL}.pkl
 
+${DATE}_gd_clique_snap.${LABEL}.${INIT}.graph: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl
+	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap${INIT}.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl ${DATE}_gd_clique_snap.${LABEL}.${INIT}.graph ${EP} ${DATE}_labeled_twitter_clique_graph.${LABEL}.${INIT}.pkl ${DATE}_twitter_snap_clique_translations.${LABEL}.${INIT}.pkl
+
+${DATE}_gd_clique_snap.${LABEL}.${INIT}.${PROP}.prop: ${DATE}_gd_clique_snap.${LABEL}.${INIT}.graph
+	./newty -file:${DATE}_gd_clique_snap.${LABEL}.${INIT}.graph -discrete:${PROP}
+
 ${DATE}_neighborhood_clique_graph.${LABEL}.pkl: ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl
 	python -OO generate_max_clique_graph.py ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl ${DATE}_neighborhood_clique_graph.${LABEL}.pkl
 

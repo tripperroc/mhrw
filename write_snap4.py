@@ -273,6 +273,7 @@ def label_by_weighted_voting4 (u, ep, test_labeled):
     straight_unlabeled = 0
     straight_count = 0
     gay_count = 0
+    both = 0
     #################
     #
     # Initialize priorities
@@ -298,8 +299,8 @@ def label_by_weighted_voting4 (u, ep, test_labeled):
     logfile = file("labeling_log.txt", "w")
     while len(unlabeled) > 0:
         (ego, score) = unlabeled.popitem()
-        if score == 0:
-            break
+        #if score == 0:
+        #    break
         gay_alters = 0.0
         straight_alters = 0.0
         gay_list = list()
@@ -323,7 +324,8 @@ def label_by_weighted_voting4 (u, ep, test_labeled):
                 priority =  -(priority * float(u.node[alter]["total_weight"]) + float((u[ego][alter]["embeddedness"])**ep))/float(u.node[alter]["total_weight"])
                 unlabeled[alter] = priority
         u.node[ego]["orientation"] =  (u.node[ego]["gay_weight"] - u.node[ego]["straight_weight"])/float(u.node[ego]["total_weight"])
-
+        if u.node[ego]["gay_weight"] > 0 and  u.node[ego]["straight_weight"] > 0:
+            both += 1
         
         logfile.write ("%d: degree: %d, priority: %f, gay: %s; straight %s\n" % (ego, u.degree(ego), score, str(gay_list), str(straight_list)))
         print "%d %d %f %f %f %f"  % (ego, u.degree(ego), u.node[ego]["gay_weight"], u.node[ego]["straight_weight"] , u.node[ego]["total_weight"], u.node[ego]["orientation"] )
@@ -331,11 +333,13 @@ def label_by_weighted_voting4 (u, ep, test_labeled):
     logfile.close()
 
     for ego in u:
-        if u.node[ego]["orientation"] > 0:
+        if u.node[ego]["orientation"] > -.1:
             u.node[ego]["orientation"] = 1;
         else:
             u.node[ego]["orientation"] = -1;
-             
+
+    
+    print "both: %d" % both
     return u
 
 def dump_tests (u, test_labeled):
@@ -369,6 +373,7 @@ def dump_tests (u, test_labeled):
     
     print "%d %d %d %d %d %d" % (gay_labeled_gay, gay_labeled_straight, gay_unlabeled, straight_labeled_gay, straight_labeled_straight, straight_unlabeled)
     
+    return u
 
 def label_by_revoting (u, ep, test_labeled):
 
@@ -380,10 +385,17 @@ def label_by_revoting (u, ep, test_labeled):
     tolabel = pqdict.PQDict()
     for ego in u:
         if "total_weight" in u.node[ego]:
+            if u.node[ego]["orientation"] == 0:
+                if u.node[ego]["gay_weight"] > u.node[ego]["straight_weight"]:
+                    u.node[ego]["orientation"] = -1
+                elif u.node[ego]["gay_weight"] < u.node[ego]["straight_weight"]:
+                    u.node[ego]["orientation"] = 1
+        
             tolabel[ego] = u.node[ego]["orientation"] * (u.node[ego]["gay_weight"] - u.node[ego]["straight_weight"])/u.node[ego]["total_weight"]
-            #print ego
-            #sys.stdout.write ("%d %d %f %f %f\n" % (ego, u.node[ego]["orientation"], u.node[ego]["gay_weight"], u.node[ego]["straight_weight"], u.node[ego]["total_weight"]))
+                #print ego
+                #sys.stdout.write ("%d %d %f %f %f\n" % (ego, u.node[ego]["orientation"], u.node[ego]["gay_weight"], u.node[ego]["straight_weight"], u.node[ego]["total_weight"]))
             
+
 
 
     #################
@@ -397,11 +409,17 @@ def label_by_revoting (u, ep, test_labeled):
             break
         for alter in u.neighbors(ego):
             if "total_weight" in u.node[alter]:
-                u[alter]["gay_weight"] -= u.node[ego]["orientation"] * u.node[ego][alter]["embeddedness"]**ep
-                u[alter]["straight_weight"] += u.node[ego]["orientation"] * u.node[ego][alter]["embeddedness"]**ep
+                u.node[alter]["gay_weight"] -= u.node[ego]["orientation"] * u[ego][alter]["embeddedness"]**ep
+                u.node[alter]["straight_weight"] += u.node[ego]["orientation"] * u[ego][alter]["embeddedness"]**ep
+
+                if u.node[alter]["orientation"] == 0:
+                    if u.node[alter]["gay_weight"] > u.node[alter]["straight_weight"]:
+                        u.node[alter]["orientation"] = -1
+                    elif u.node[alter]["gay_weight"] < u.node[alter]["straight_weight"]:
+                        u.node[alter]["orientation"] = 1
                 tolabel[alter] = u.node[alter]["orientation"] * (u.node[alter]["gay_weight"] - u.node[alter]["straight_weight"])/u.node[alter]["total_weight"];
                 
-        u.node[ego]["orientation"] *= -1;
+        u.node[ego]["orientation"] *= -1
         tolabel[ego] = u.node[ego]["orientation"] * (u.node[ego]["gay_weight"] - u.node[ego]["straight_weight"])/u.node[ego]["total_weight"];
 
     return u
