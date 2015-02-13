@@ -24,14 +24,14 @@ MYPYTHONPATH=/usr/local/lib/python2.7/site-packages/
 # This setting seemed to yield good results
 # ./mhrw -file:gd_snap.graph -balance:.1 -flip:0 -num_swaps:10 -gayweight:1 -labweight:10 -greedy:0 -grad:100000
 
-${DATE}_twitter_graph.${LABEL}.pkl: ${DATE}_master_user_list.json ${DATE}_social_graph.json
-	python -OO generate_twitter_graph.py ${DATE}_master_user_list.json ${DATE}_social_graph.json ${DATE}_twitter_graph.${LABEL}.pkl
-
+${DATE}_twitter_graph.pkl: ${DATE}_master_user_list.json ${DATE}_social_graph.json
+	python -OO generate_twitter_graph.py ${DATE}_master_user_list.json ${DATE}_social_graph.json ${DATE}_twitter_graph.pkl
+ 
 ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl: orientation-${DATE}.txt ${DATE}_twitter_graph.pkl 
 	python -OO generate_twitter_neighborhood_graph.py orientation-${DATE}.txt ${DATE}_twitter_graph.${LABEL}.pkl ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl
 
-${DATE}_gd_snap.${LABEL}.${INIT}.graph ${DATE}_labeled_twitter_graph.${LABEL}.${INIT}.pkl: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_twitter_graph.${LABEL}.pkl
-	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_graph.${LABEL}.pkl ${DATE}_gd_snap.${LABEL}.${INIT}.graph ${EP} ${DATE}_labeled_twitter_graph.${LABEL}.${INIT}.pkl ${DATE}_twitter_snap_translations.${INIT}.${LABEL}.pkl
+${DATE}_gd_snap.${LABEL}.${INIT}.graph ${DATE}_labeled_twitter_graph.${LABEL}.${INIT}.pkl: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_twitter_graph.pkl
+	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap${INIT}.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_graph.pkl ${DATE}_gd_snap.${LABEL}.${INIT}.graph ${EP} ${DATE}_labeled_twitter_graph.${LABEL}.${INIT}.pkl ${DATE}_twitter_snap_translations.${INIT}.${LABEL}.pkl
 	touch ${DATE}_gd_snap.${LABEL}.${INIT}.graph ${DATE}_labeled_twitter_graph.${INIT}.${LABEL}.pkl
 
 ${DATE}_gd_neighborhood_snap.${LABEL}.graph  ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl
@@ -45,13 +45,13 @@ ${DATE}_twitter_clique_graph.${LABEL}.pkl: ${DATE}_labeled_twitter_graph.${LABEL
 	python -OO generate_max_clique_graph.py ${DATE}_labeled_twitter_graph.${LABEL}.pkl ${DATE}_twitter_clique_graph.${LABEL}.pkl
 
 ${DATE}_gd_clique_snap.graph: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl
-	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap3.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl ${DATE}_gd_clique_snap.${LABEL}.graph ${EP} ${DATE}_labeled_twitter_clique_graph.${LABEL}.pkl ${DATE}_twitter_snap_clique_translations.${LABEL}.pkl
+	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap${K}.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl ${DATE}_gd_clique_snap.${LABEL}.graph ${EP} ${DATE}_labeled_twitter_clique_graph.${LABEL}.pkl ${DATE}_twitter_snap_clique_translations.${LABEL}.pkl
 
 ${DATE}_gd_clique_snap.${LABEL}.${INIT}.graph: orientation-${DATE}-train.${K}.txt  orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl
 	export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}; python -OO write_snap${INIT}.py orientation-${DATE}-train.${K}.txt orientation-${DATE}-test.${K}.txt ${DATE}_twitter_clique_graph.${LABEL}.pkl ${DATE}_gd_clique_snap.${LABEL}.${INIT}.graph ${EP} ${DATE}_labeled_twitter_clique_graph.${LABEL}.${INIT}.pkl ${DATE}_twitter_snap_clique_translations.${LABEL}.${INIT}.pkl
 
 ${DATE}_gd_snap.${LABEL}.${INIT}.${PROP}.prop: ${DATE}_gd_snap.${LABEL}.${INIT}.graph
-	./newty -file:${DATE}_gd_clique_snap.${LABEL}.${INIT}.graph -discrete:${PROP} > ${DATE}_gd_snap.${LABEL}.${INIT}.${PROP}.prop
+	./newty -file:${DATE}_gd_snap.${LABEL}.${INIT}.graph -discrete:${PROP} > ${DATE}_gd_snap.${LABEL}.${INIT}.${PROP}.prop
 
 ${DATE}_neighborhood_clique_graph.${LABEL}.pkl: ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl
 	python -OO generate_max_clique_graph.py ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl ${DATE}_neighborhood_clique_graph.${LABEL}.pkl

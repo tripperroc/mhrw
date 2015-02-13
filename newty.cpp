@@ -216,7 +216,7 @@ void run_mhrw ( const char * input_name, int all, int discrete) {
   do {
     err = model.tic();
     reps++;
-  } while (err > 1 && reps < 10000);
+  } while (err > 1 && reps < 5000);
  
 }
 

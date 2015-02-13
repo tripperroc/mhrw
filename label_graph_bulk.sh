@@ -7,13 +7,14 @@ do
 	do
 	    for name in gd
             do
-#		for init in 2 3 4
-#		do
-#		    prop in 0 1
-#                   do
-			sbatch -o c_${d}_${k}_${ep}_${name}_${init}_${prop}.out -e c_${d}_${k}_${ep}_${name}_${init}_${prop}.err label_graph.sh ${d} ${k} ${ep}_${k} ${ep} ${name} ${init} ${prop}
-#                    done
-#                 done
+		for init in 2 3 4
+		do
+		    for prop in 0 1
+                    do
+			#sbatch -o c_${d}_${k}_${ep}_${name}_${init}_${prop}.out -e c_${d}_${k}_${ep}_${name}_${init}_${prop}.err label_graph.sh ${d} ${k} ${ep}_${k} ${ep} ${name} ${init} ${prop}
+			./label_graph.sh ${d} ${k} ${ep}_${k} ${ep} ${name} ${init} ${prop} #> c_${d}_${k}_${ep}_${name}_${init}_${prop}.out
+                    done
+                 done
 	    done
 	done
     done
