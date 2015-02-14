@@ -21,7 +21,7 @@ private:
   THash<TPair<TInt, TInt>, float> edgeweight;
   int numtestlabels;
   int discrete;
-  
+   double last_err;
 public:
   double * new_labels;
   double * labels;
@@ -30,7 +30,7 @@ public:
   double target_gay_fraction;
   
   
-  Model (PUNGraph p, double * labels, double * new_labels, int numlabels, THash<TPair<TInt, TInt>, float> edgeweight, int numtestlabels, int * test_labels, int discrete): p(p), labels(labels), new_labels(new_labels), numlabels(numlabels), edgeweight(edgeweight), numtestlabels(numtestlabels), test_labels(test_labels), discrete(discrete) {
+  Model (PUNGraph p, double * labels, double * new_labels, int numlabels, THash<TPair<TInt, TInt>, float> edgeweight, int numtestlabels, int * test_labels, int discrete): p(p), labels(labels), new_labels(new_labels), numlabels(numlabels), edgeweight(edgeweight), numtestlabels(numtestlabels), test_labels(test_labels), discrete(discrete), last_err(0) {
     edge_weights = new double[p->GetNodes()];   
     
     for (TUNGraph::TNodeI n = p->BegNI(); n != p->EndNI(); n++) {
@@ -56,7 +56,7 @@ public:
    * Calculates the log probability of a given label set
    */
   double tic  () {
-
+    
     int gay_labeled_gay = 0,
       gay_labeled_straight = 0,
       gay_unlabeled = 0,
@@ -65,6 +65,7 @@ public:
       straight_unlabeled = 0;
     
     double total_err = 0;
+   
     
     for (TUNGraph::TNodeI n = p->BegNI(); n != p->EndNI(); n++) {
       
@@ -112,7 +113,12 @@ public:
     double * swap = new_labels;
     new_labels = labels;
     labels = swap;
-    return total_err;
+    if (discrete == 0) return total_err;
+    else {
+      float diff = total_err - last_err > 0 ? total_err - last_err : last_err - total_err;
+      last_err = total_err;
+      return diff;
+    }
   }
 
 };
@@ -216,7 +222,7 @@ void run_mhrw ( const char * input_name, int all, int discrete) {
   do {
     err = model.tic();
     reps++;
-  } while (err > 1 && reps < 5000);
+  } while (err > 1);
  
 }
 
