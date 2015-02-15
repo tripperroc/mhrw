@@ -34,6 +34,15 @@
 
 
 # Your job script goes below this line.
-#export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; export INIT=$6; export PROP=$7; make ${DATE}_$5_snap.${LABEL}.${INIT}.${PROP}.prop
-export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; export INIT=$6; export PROP=$7; make ${DATE}_$5_snap.${LABEL}.${INIT}.graph
-#export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; export INIT=$5; export PROP=$6; make ${DATE}_twitter_graph.pkl
+export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; export INIT=$6; 
+MYPYTHONPATH=/home/choman/.local/lib/python2.6/site-packages
+export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}
+python -OO write_snap3.py orientation-02-2015-train.${K}.txt orientation-02-2015-test.${K}.txt ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl ${DATE}_gd_neighborhood_snap.${LABEL}.graph ${EP} ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl ${DATE}_twitter_snap_neighborhood_translations.${LABEL}.pkl
+for p in 0 1
+do
+    export PROP=${p};
+    #make ${DATE}_$5_snap.${LABEL}.${INIT}.${PROP}.prop
+    #make ${DATE}_$5_snap.${LABEL}.${INIT}.graph
+    #make ${DATE}_twitter_graph.pkl
+    ./newty -file:${DATE}_gd_snap.${LABEL}.${INIT}.graph -discrete:${PROP} > ${DATE}_gd_snap.${LABEL}.${INIT}.${PROP}.prop
+done

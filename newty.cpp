@@ -127,10 +127,12 @@ public:
 /*
  * Loads node data from input file
  */
-int get_nodes (ifstream & file, double * inf, double * new_inf,  int numnodes, int numlabels, int all) {
+int get_nodes (ifstream & file, double * inf, double * new_inf,  int numnodes, int numlabels, int all, long * names) {
   int total = 0;
+  //long la;
   for (int j = 0; j < numnodes; j++) {
-    file >> inf[j];
+    file >> names[j] >> inf[j];
+    //cerr << names << " " << inf[j] << endl;
     new_inf[j] = inf[j];
     total += inf[j];
   }
@@ -181,12 +183,14 @@ void run_mhrw ( const char * input_name, int all, int discrete) {
   for (int i = 0; i< numnodes; i++) {
     g->AddNode(i);
   }
-  
+
+  cerr << "here, at least" << endl;
   int u,v;
   double w;
   THash<TPair<TInt, TInt>, float> edgeweight;
   for (int i = 0; i < numedges; i++) {
     file >> u >> v >> w;
+    //cerr << i << " " << numedges << " " << u << " " << v << " " << w << endl;
     g->AddEdge(u, v);
     //TUNGraph::TEdgeI ei = g->GetEI(u, v);
     
@@ -194,10 +198,12 @@ void run_mhrw ( const char * input_name, int all, int discrete) {
   }
 
   file >> s >> numlabels;
-  cout << "num_labels: " << numlabels << endl;
+  cerr << "num_labels: " << numlabels << endl;
   double * labels = new double[numnodes];
   double * newlabels = new double[numnodes];
-  get_nodes (file, labels, newlabels, numnodes, numlabels, all);
+  long * names = new long[numnodes];
+  cerr << "here" << endl;
+  get_nodes (file, labels, newlabels, numnodes, numlabels, all, names);
   
   file >> s >> numtestlabels;
   cout << "num_test_labels: " << numtestlabels << endl;

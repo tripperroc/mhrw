@@ -233,7 +233,7 @@ def write_to_snap (file_name, v, node_trans, node_untrans, labeled, test_labels,
     #for label in labeled:
     #    snap_graph.write ("%d\n" % label)
     for i in range(0, len(v)):
-        snap_graph.write ("%d\n" % v.node[node_untrans[i]]["orientation"])
+        snap_graph.write ("%d %d\n" % (node_untrans[i], v.node[node_untrans[i]]["orientation"]))
     snap_graph.write ("num_test_labeled %d\n" % len(test_labels))
     for label in test_labels:
         snap_graph.write ("%d\n" % label)
