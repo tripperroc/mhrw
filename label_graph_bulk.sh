@@ -11,8 +11,8 @@ do
 		do
 		    #for prop in 0 1
                     #do
-			#sbatch -o c_${d}_${k}_${ep}_${name}_${init}_${prop}.out -e c_${d}_${k}_${ep}_${name}_${init}_${prop}.err label_graph.sh ${d} ${k} ${ep}_${k} ${ep} ${name} ${init} ${prop}
-			./label_graph.sh ${d} ${k} ${ep}_${k} ${ep} ${name} ${init} ${prop} > c_${d}_${k}_${ep}_${name}_${init}_${prop}.out
+			sbatch -o c_${d}_${k}_${ep}_${name}_${init}_${prop}.out -e c_${d}_${k}_${ep}_${name}_${init}_${prop}.err label_graph.sh ${d} ${k} ${ep}_${k} ${ep} ${name} ${init} ${prop}
+			#./label_graph.sh ${d} ${k} ${ep}_${k} ${ep} ${name} ${init} ${prop} > c_${d}_${k}_${ep}_${name}_${init}_${prop}.out
                     #done
                  done
 	    done

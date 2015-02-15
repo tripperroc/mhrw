@@ -37,12 +37,15 @@
 export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; export INIT=$6; 
 MYPYTHONPATH=/home/choman/.local/lib/python2.6/site-packages
 export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}
-python -OO write_snap${INIT}.py orientation-${DATE}-train.txt orientation-${DATE}-held-out.txt ${DATE}_twitter_graph.pkl ${DATE}_gd_snap.${LABEL}.${INIT}.graph ${EP} ${DATE}_labeled_twitter_graph.${LABEL}.${INIT}.pkl ${DATE}_twitter_snap_translations.${LABEL}.${INIT}.pkl
+python -OO write_snap${INIT}.py orientation-${DATE}-train.txt orientation-${DATE}-heldout.txt ${DATE}_twitter_graph.pkl ${DATE}_gd_snap.${LABEL}.${INIT}.graph ${EP} ${DATE}_labeled_twitter_graph.${LABEL}.${INIT}.pkl ${DATE}_twitter_snap_translations.${LABEL}.${INIT}.pkl
 for p in 0 1
 do
-    export PROP=${p};
-    #make ${DATE}_$5_snap.${LABEL}.${INIT}.${PROP}.prop
-    #make ${DATE}_$5_snap.${LABEL}.${INIT}.graph
-    #make ${DATE}_twitter_graph.pkl
-    ./newty -file:${DATE}_gd_snap.${LABEL}.${INIT}.graph -discrete:${PROP} > ${DATE}_gd_snap.${LABEL}.${INIT}.${PROP}.prop
+    for q in 0 1
+    do
+       export PROP=${p};
+       #make ${DATE}_$5_snap.${LABEL}.${INIT}.${PROP}.prop
+       #make ${DATE}_$5_snap.${LABEL}.${INIT}.graph
+       #make ${DATE}_twitter_graph.pkl
+       ./newty -file:${DATE}_gd_snap.${LABEL}.${INIT}.graph -discrete:${PROP} > ${DATE}_gd_snap.${LABEL}.${INIT}.${PROP}.prop
+    done
 done
