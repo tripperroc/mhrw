@@ -37,7 +37,7 @@
 export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; export INIT=$6; 
 MYPYTHONPATH=/home/choman/.local/lib/python2.6/site-packages
 export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}
-python -OO write_snap3.py orientation-02-2015-train.${K}.txt orientation-02-2015-test.${K}.txt ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl ${DATE}_gd_neighborhood_snap.${LABEL}.graph ${EP} ${DATE}_labeled_neighborhood_graph.${LABEL}.pkl ${DATE}_twitter_snap_neighborhood_translations.${LABEL}.pkl
+python -OO write_snap${INIT}.py orientation-${DATE}-train.txt orientation-${DATE}-held-out.txt ${DATE}_twitter_graph.pkl ${DATE}_gd_snap.${LABEL}.${INIT}.graph ${EP} ${DATE}_labeled_twitter_graph.${LABEL}.${INIT}.pkl ${DATE}_twitter_snap_translations.${LABEL}.${INIT}.pkl
 for p in 0 1
 do
     export PROP=${p};

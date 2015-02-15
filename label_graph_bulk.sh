@@ -7,7 +7,7 @@ do
 	do
 	    for name in gd
             do
-		for init in 1 2
+		for init in 1 2 3 4
 		do
 		    #for prop in 0 1
                     #do
