@@ -15,7 +15,7 @@ from snap_write import *
 
 
 
-def label_by_weighted_voting3 (u, ep, test_labeled):
+def label_by_weighted_voting (u, ep, test_labeled):
 
     gay_labeled_gay = 0
     gay_labeled_straight = 0
@@ -25,31 +25,81 @@ def label_by_weighted_voting3 (u, ep, test_labeled):
     straight_unlabeled = 0
     straight_count = 0
     gay_count = 0
-    
     #################
     #
-    # Create labels
+    # Initialize priorities
     #
+    unlabeled = pqdict.PQDict()
     for ego in u:
         if not "orientation" in u.node[ego]:
             u.node[ego]["total_weight"] = 0
-            count = 0
             u.node[ego]["gay_weight"] = 0
             u.node[ego]["straight_weight"] = 0
-            gay_list = list()
-            straight_list = list()
+            count = 0
             total_weight = 0
             for alter in u.neighbors(ego):
                 if "orientation" in u.node[alter]:
                     if u.node[alter]["orientation"] == 1:
                         u.node[ego]["gay_weight"] += u[ego][alter]["embeddedness"]**ep
-                        gay_list.append(alter)
-                    elif u.node[alter]["orientation"] == -1:
-                        u.node[ego]["straight_weight"] += u[ego][alter]["embeddedness"] **ep
-                        straight_list.append(alter)
+                    if u.node[alter]["orientation"] == -1:
+                        u.node[ego]["straight_weight"] += u[ego][alter]["embeddedness"]**ep
                 #total_weight += u[ego][alter]["embeddedness"]**ep
                 u.node[ego]["total_weight"] += u[ego][alter]["embeddedness"]**ep
-            u.node[ego]["orientation"] = 0
+            if u.node[ego]["gay_weight"] > u.node[ego]["straight_weight"]:
+                priority = -float(u.node[ego]["gay_weight"])/float(u.node[ego]["total_weight"])
+            else:
+                priority = -float(u.node[ego]["straight_weight"])/float(u.node[ego]["total_weight"])
+            unlabeled[ego] = priority
+
+    #################
+    #
+    # Create labels
+    #
+    logfile = file("labeling_log.txt", "w")
+    while len(unlabeled) > 0:
+        (ego, score) = unlabeled.popitem()
+        if score == 0:
+            break
+        gay_alters = 0.0
+        straight_alters = 0.0
+        gay_list = list()
+        straight_list = list()
+        if u.node[ego]["gay_weight"] > u.node[ego]["straight_weight"]:
+            u.node[ego]["orientation"] = 1
+            logfile.write ("GAY\t\t");
+            gay_count += 1
+        else:
+            u.node[ego]["orientation"] = -1
+            logfile.write ("STRAIGHT\t");
+            straight_count += 1
+        
+        if ego in test_labeled:
+            if u.node[ego]["orientation"] == 1:
+                if u.node[ego]["test_orientation"] == 1:
+                    gay_labeled_gay += 1
+                else:
+                    straight_labeled_gay += 1
+            else:
+                if u.node[ego]["test_orientation"] == 1:
+                    gay_labeled_straight += 1
+                else:
+                    straight_labeled_straight += 1
+        logfile.write ("%d: degree: %d, priority: %f, gay: %s; straight %s\n" % (ego, u.degree(ego), score, str(gay_list), str(straight_list)))
+        print "%d %d %f %d %d %d %d %d %d"  % (ego, u.degree(ego) , u.node[ego]["total_weight"], gay_count, straight_count, gay_labeled_gay, gay_labeled_straight, straight_labeled_gay, straight_labeled_straight)
+        #priority = -float(count)/float(len(u.neighbors(ego)))
+        for alter in u.neighbors(ego):
+            if not "orientation" in u.node[alter]:
+                if u.node[ego]["orientation"] == 1:
+                    u.node[alter]["gay_weight"] += u[ego][alter]["embeddedness"]**ep
+                elif  u.node[ego]["orientation"] == -1:
+                    u.node[alter]["straight_weight"] += u[ego][alter]["embeddedness"]**ep
+                if u.node[alter]["gay_weight"] > u.node[alter]["straight_weight"]:
+                    priority =  -float(u.node[alter]["gay_weight"])/float(u.node[alter]["total_weight"])
+                else:
+                    priority =  -float(u.node[alter]["straight_weight"])/float(u.node[alter]["total_weight"])
+                unlabeled[alter] = priority
+
+    logfile.close()
     return u
 
 
@@ -142,7 +192,7 @@ def main():
     #u = label_by_voting (u)
     #u = label_by_weighted_voting (u, float(sys.argv[5]))
     #u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled)
-    u = label_by_weighted_voting3 (u, float(sys.argv[5]), test_labeled)
+    u = label_by_weighted_voting (u, float(sys.argv[5]), test_labeled)
     dump_tests (u, test_labeled)
     #u = label_by_revoting (u, float(sys.argv[5]), test_labeled)
     #dump_tests (u, test_labeled)
