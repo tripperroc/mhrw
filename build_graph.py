@@ -40,6 +40,9 @@ def build_graph (unlabeled_data_name, graph_data_name):
 
     
     u = di.to_undirected(reciprocal=True)
+
+    return u
+
     ccs = nx.connected_component_subgraphs(u)
     l = sorted(ccs, key = lambda x: len(x), reverse=True)
     u = l[0]
