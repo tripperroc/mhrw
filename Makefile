@@ -8,8 +8,8 @@
 
 
 include ../../Makefile.config
-#include Makefile.ex
-include Makefile.newty
+include Makefile.ex
+#include Makefile.newty
 include ../Makefile.exmain
 
 #DATE=34-2014
@@ -24,8 +24,8 @@ MYPYTHONPATH=/usr/local/lib/python2.7/site-packages/
 # This setting seemed to yield good results
 # ./mhrw -file:gd_snap.graph -balance:.1 -flip:0 -num_swaps:10 -gayweight:1 -labweight:10 -greedy:0 -grad:100000
 
-#${DATE}_twitter_graph.pkl: ${DATE}_master_user_list.json ${DATE}_social_graph.json
-#	python -OO generate_twitter_graph.py ${DATE}_master_user_list.json ${DATE}_social_graph.json ${DATE}_twitter_graph.pkl
+${DATE}_twitter_graph.pkl: ${DATE}_master_user_list.json ${DATE}_social_graph.json
+	python -OO generate_twitter_graph.py ${DATE}_master_user_list.json ${DATE}_social_graph.json ${DATE}_twitter_graph.pkl
  
 ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl: orientation-02-2015.txt ${DATE}_twitter_graph.pkl 
 	python -OO generate_twitter_neighborhood_graph.py orientation-02-2015.txt ${DATE}_twitter_graph.${LABEL}.pkl ${DATE}_twitter_neighborhood_graph.${LABEL}.pkl
