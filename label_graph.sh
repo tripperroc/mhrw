@@ -30,18 +30,18 @@
 #SBATCH -n 1
 
 # Job memory requirements in MB
-#SBATCH --mem-per-cpu=10000
+#SBATCH --mem-per-cpu=100000
 
 
 # Your job script goes below this line.
 	  
-export EP=$1; export INIT=$2;
+export EP=$2; export INIT=$3; export DATE=$1
 MYPYTHONPATH=/home/choman/.local/lib/python2.6/site-packages
 export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}
 
-python -OO write_snap${INIT}.py orientation-train.txt orientation-heldout.txt ${DATE}_twitter_graph.pkl ${DATE}_D-${EP}_I-${INIT}.graph ${EP} ${DATE}_labeled_twitter_graph_D-${EP}_I-${INIT}.pkl ${DATE}_twitter_snap_trans_D-${LABEL}_I-${INIT}.pkl > 02-2015_D-${deg}_I-${init}.init_results
+python -OO write_snap${INIT}.py orientation-02-2015-train.txt orientation-02-2015-heldout.txt ${DATE}_twitter_graph.pkl ${DATE}_D-${EP}_I-${INIT}.graph ${EP} ${DATE}_labeled_twitter_graph_D-${EP}_I-${INIT}.pkl ${DATE}_twitter_snap_trans_D-${EP}_I-${INIT}.pkl > 02-2015_D-${EP}_I-${INIT}.init_results
 
-./newty -file:${DATE}_D-${EP}_I-${INIT}.graph -discrete:1 > 02-2015_D-${deg}_I-${init}_disc.iter_results
+./newty -file:${DATE}_D-${EP}_I-${INIT}.graph -discrete:1 > 02-2015_D-${EP}_I-${INIT}_disc.iter_results
 
 if [ "$INIT" == "3" ]
 then

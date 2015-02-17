@@ -6,6 +6,7 @@
 *.outx
 *.prop
 *.out
+*.*results
 *.err
 mhrw
 urdata
