@@ -32,6 +32,8 @@ def label_by_weighted_voting3 (u, ep, test_labeled):
     #
     for ego in u:
         if not "orientation" in u.node[ego]:
+            u.node[ego]["orientation"] = 0
+            continue
             u.node[ego]["total_weight"] = 0
             count = 0
             u.node[ego]["gay_weight"] = 0
@@ -66,23 +68,38 @@ def main():
     global straight_cliques
     global B
 
+    global labeled
+    
     graph_file = file (sys.argv[3])
     u = pickle.load(graph_file)
     graph_file.close()
-        
 
+    # try w/ clique graph
+    u = nx.make_clique_bipartite(u)
+    for i,j in u.edges():
+        u[i][j]["embeddedness"] = 1
     u = set_orientation_by_file (sys.argv[1], "orientation", u)
     u = set_orientation_by_file (sys.argv[2], "test_orientation", u)
 
+    all = u.subgraph([x for x in u.node if "orientation" in u.node[x]])
+    gay_graph = u.subgraph([y for y in [x for x in u.node if "orientation" in u.node[x]] if u.node[y]['orientation'] == 1])
+    straight_graph = u.subgraph([y for y in [x for x in u.node if "orientation" in u.node[x]] if u.node[y]['orientation'] == -1])
+    
+
+
     '''
     B = nx.make_clique_bipartite(u)
-
-    for node in gays:
-        gay_cliques = gay_cliques | set (B.neighbors(node))
-    for node in straights:
-        straight_cliques = straight_cliques | set (B.neighbors(node))
     '''
-
+    for node in gay_graph:
+        gay_cliques = gay_cliques | set (u.neighbors(node))
+    for node in straight_graph:
+        straight_cliques = straight_cliques | set (u.neighbors(node))
+    
+    #for node in straight_cliques & gay_cliques:
+    #    print "Share clique: %s" % node
+    #    print "Neighbors: %s " % u.neighbors(node)
+    #    u.remove_node(node)
+        
     ##################################
     #
     # Invent new node labels that snap will understand
@@ -123,7 +140,8 @@ def main():
         node_trans[ego] = count
         node_untrans[count] = ego
         count +=1
-        
+
+    
 
     ######################
     #
@@ -135,6 +153,8 @@ def main():
     pickle.dump(u, pkl_file)
     pkl_file.close()
 
+    #labeled = u.copy()
+    
     pkl_file = open(sys.argv[7], "w")
     pickle.dump(node_trans, pkl_file)
     pkl_file.close()
@@ -143,7 +163,7 @@ def main():
     #u = label_by_weighted_voting (u, float(sys.argv[5]))
     #u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled)
     u = label_by_weighted_voting3 (u, float(sys.argv[5]), test_labeled)
-    dump_tests (u, test_labeled)
+    #dump_tests (u, test_labeled)
     #u = label_by_revoting (u, float(sys.argv[5]), test_labeled)
     #dump_tests (u, test_labeled)
     

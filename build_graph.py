@@ -41,7 +41,7 @@ def build_graph (unlabeled_data_name, graph_data_name):
     
     u = di.to_undirected(reciprocal=True)
 
-    return u
+    #return u
 
     ccs = nx.connected_component_subgraphs(u)
     l = sorted(ccs, key = lambda x: len(x), reverse=True)
@@ -53,7 +53,8 @@ def build_graph (unlabeled_data_name, graph_data_name):
     #l = sorted(ccs, key = lambda x: len(x), reverse=True)
     #u = l[0]
     for ego,alter in u.edges():
-        u[ego][alter]["embeddedness"] = 1 + len(set(u.neighbors(ego)) & set(u.neighbors(alter)))
+        #u[ego][alter]["embeddedness"] = 1 + len(set(u.neighbors(ego)) & set(u.neighbors(alter)))
+        u[ego][alter]["embeddedness"] = float(len(set(u.neighbors(ego)) & set(u.neighbors(alter))) + 1) / float(min(len(u.neighbors(ego)), len(u.neighbors(alter))) + 1)
 
     return u
 

@@ -242,6 +242,35 @@ def set_orientation_by_file (filename, field_name, u):
     test_data.close()
     return u
 
+
+def set_orientation_by_file2 (filename, legal_names, field_name, u):
+    #print "HoHO"
+    test_data = file(filename)
+    legal = file (legal_names)
+    lines = legal.readlines()
+    legal.close()
+    
+    legal =  [int(x) for x in lines]
+    legal = set(legal)
+
+    #for ja in legal:
+    #    print ja
+    lines = test_data.readlines()
+    test_data.close()
+    for line in lines:
+        k,v = line.split()
+        ego = int(k)
+        cl = 2 * int(v) - 1
+        #print ego
+        if ego in legal:
+            u.node[ego][field_name] = cl
+    return u
+            
+
+    
+    
+
+
 def write_to_snap (file_name, v, node_trans, node_untrans, labeled, test_labels, ep):
     snap_graph = file (file_name, "w")
 

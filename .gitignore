@@ -1,4 +1,7 @@
 *.pkl
+clique_graph
+*.pdf
+*.csv
 *.json
 *.pyc
 *.pyo

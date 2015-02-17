@@ -36,7 +36,8 @@
 # Your job script goes below this line.
 	  
 export EP=$2; export INIT=$3; export DATE=$1
-MYPYTHONPATH=/home/choman/.local/lib/python2.6/site-packages
+#MYPYTHONPATH=/home/choman/.local/lib/python2.6/site-packages
+MYPYTHONPATH=/usr/local/lib/python2.7/site-packages/
 export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}
 
 python -OO write_snap${INIT}.py orientation-02-2015-train.txt orientation-02-2015-heldout.txt ${DATE}_twitter_graph.pkl ${DATE}_D-${EP}_I-${INIT}.graph ${EP} ${DATE}_labeled_twitter_graph_D-${EP}_I-${INIT}.pkl ${DATE}_twitter_snap_trans_D-${EP}_I-${INIT}.pkl > 02-2015_D-${EP}_I-${INIT}.init_results
@@ -47,3 +48,5 @@ if [ "$INIT" == "3" ]
 then
     ./newty -file:${DATE}_D-${EP}_I-${INIT}.graph -discrete:0 > 02-2015_D-${deg}_I-${init}_cont.iter_results
 fi
+
+#python ./mhrw -file:${DATE}_D-${EP}_I-${INIT}.graph -swaps:1000 > 02-2015_D-${deg}_I-${init}_mhrw.iter_results

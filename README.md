@@ -11,10 +11,11 @@ This repo contains the necessary labeled data. To run, clone this repo
 into the examples directory under snap. Then edit the Makefile with the
 the location of any python libraries.
 
-To build the smaller neighborhood graph (consisting of just the
-labeled data and the neighbors of those points), type
+You need the following files.
 
->export DATE=02-2015; make ${DATE}_twitter_neighborhood_graph.pkl
+* 02-2015_master_user_list.json
+* 02-2015_social_graph.json
+
 
 To build the larger neighborhood graph, type
 

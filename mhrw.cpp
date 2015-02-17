@@ -21,8 +21,6 @@ private:
   double labweight; // Weight of labeled data
   int numlabels;
   THash<TPair<TInt, TInt>, float> edgeweight;
-  double edges_weight;
-  double classes_weight;
   double edges_total;
   double edges_part;
   float edges_divisor;
@@ -38,22 +36,28 @@ private:
   TFlt new_imbalance_error;
   double total_gay;
   double gay_diff;
-  
+  double * times_gay;
 public:
   int * temp_labels;
   int * labels;
   double gay_fraction;
   double target_gay_fraction;
+  long num_times;
+  double edges_weight;
+  double classes_weight;
   
-  Model (PUNGraph p, int * labels, double gayweight, double labweight, int numlabels, THash<TPair<TInt, TInt>, float> edgeweight, double edges_weight, double classes_weight): p(p), labels(labels), gayweight(gayweight), labweight(labweight), numlabels(numlabels), edgeweight(edgeweight), edges_weight(edges_weight), classes_weight(classes_weight), target_gay_fraction(.1) {
+  Model (PUNGraph p, int * labels, double gayweight, double labweight, int numlabels, THash<TPair<TInt, TInt>, float> edgeweight, double edges_weight, double classes_weight): p(p), labels(labels), gayweight(gayweight), labweight(labweight), numlabels(numlabels), edgeweight(edgeweight), edges_weight(edges_weight), classes_weight(classes_weight), target_gay_fraction(.1), num_times(0) {
     temp_labels = new int[p->GetNodes()];
     edge_weights = new double[p->GetNodes()];
     node_total_similarity = new double[p->GetNodes()];
     node_diff_similarity = new double[p->GetNodes()];
     stats = new double[p->GetNodes()];
+    times_gay = new double[p->GetNodes()];
+    
     for (int i = 0; i < p->GetNodes(); i++) {
       temp_labels [i] = 0;
       node_diff_similarity[i] = 0;
+      times_gay[i] = 0;
     }
     for (TUNGraph::TNodeI n = p->BegNI(); n != p->EndNI(); n++) {
       TInt ego = n.GetId();
@@ -73,6 +77,84 @@ public:
 
   ~Model () {
     delete temp_labels;
+  }
+
+  void poll () {
+    for (int i = 0; i < p->GetNodes(); i++) {
+      times_gay[i] += float(labels[i]);
+    }
+    num_times++;
+  }
+
+  void report ( int numtestlabels, int * test_labels){
+    for (int i = 0; i < p->GetNodes(); i++) {
+      times_gay[i] = times_gay[i] / float(num_times);
+      //cout << times_gay[i] << endl;
+    }
+
+    for (float thresh = -1.01; thresh <= 1.01; thresh += .02) {
+      cout << thresh << " ";
+
+     int gay_labeled_gay = 0,
+       gay_labeled_straight = 0,
+       gay_unlabeled = 0,
+       straight_labeled_straight = 0,
+       straight_labeled_gay = 0,
+       straight_unlabeled = 0;
+
+     for (int ego = numlabels; ego < numlabels + numtestlabels; ego++) {
+ 
+       TInt ego2 = ego - numlabels;
+       if (test_labels[ego2] > 0) {
+	 if (times_gay[ego] > thresh) gay_labeled_gay++;
+	 else if (times_gay[ego] <= thresh) gay_labeled_straight++;
+	 else gay_unlabeled++;
+       }
+       if (test_labels[ego2] <= 0) {
+	 if (times_gay[ego] > thresh) straight_labeled_gay++;
+	 else if (times_gay[ego] <= thresh) straight_labeled_straight++;
+	 else straight_unlabeled++;
+       }	    
+     }
+     double accuracy, f, precision, recall, true_positive, false_positive;
+     
+     accuracy = float(gay_labeled_gay + straight_labeled_straight) / float(gay_labeled_gay + straight_labeled_gay + gay_labeled_straight + straight_labeled_straight);
+     
+     if (gay_labeled_gay + straight_labeled_gay == 0)
+       precision = 0.0;
+     else
+       precision = float(gay_labeled_gay) / float (gay_labeled_gay + straight_labeled_gay);
+     if (gay_labeled_gay + gay_labeled_straight == 0)
+       recall = 0.0;
+     else
+       recall = float(gay_labeled_gay)/ float(gay_labeled_gay + gay_labeled_straight);
+     if (straight_labeled_gay + straight_labeled_straight == 0)
+       false_positive = 0.0;
+     else
+       false_positive = float(straight_labeled_gay)/float(straight_labeled_gay + straight_labeled_straight);
+     if (gay_labeled_gay + gay_labeled_straight == 0)
+       true_positive = 0.0;
+     else
+       true_positive = float(gay_labeled_gay)/float(gay_labeled_gay + gay_labeled_straight);
+     if (precision + recall == 0)
+       f = 0;
+     else
+       f = 2.0 * precision * recall / (precision + recall);
+     
+     cout <<  gay_labeled_gay << " "
+	  <<  gay_labeled_straight << " "
+	  <<  gay_unlabeled << " "
+	  <<  straight_labeled_gay  << " "
+	  <<  straight_labeled_straight << " "
+	  <<  straight_unlabeled << " "
+	  <<  accuracy << " "
+	  <<  f << " "
+	  <<  precision << " "
+	  <<  recall << " "
+	  <<  true_positive << " "
+	  <<  false_positive
+	  <<  endl;
+    }
   }
   /*
    * Calculates the log probability of a given label set
@@ -118,11 +200,11 @@ public:
     }
     //double edges_part = edges_weight * total / divisor;
     edges_part = edges_weight * edges_total /  edges_divisor;
-    gay_fraction = double(total_gay) / double(p->GetNodes());
+    
     imbalance_error = target_gay_fraction - gay_fraction;
     double classes_part = classes_weight * imbalance_error * imbalance_error;
     // cout << "Oink Oink" << endl;
-    cout << edges_weight << " " << edges_total << " "  << edges_divisor  << " " << edges_part << " " << classes_part << " " << gay_fraction << " ";
+    //cerr << edges_weight << " " << edges_total << " "  << edges_divisor  << " " << edges_part << " " << classes_part << " " << gay_fraction << " ";
     return -edges_part - classes_part ;
   }
 
@@ -206,15 +288,24 @@ public:
 
     //cout  << new_label_totals << " " << tot_diffs << " " <<
     // cout << edges_weight << " " << edges_total + edges_diff << " " << new_edges_divisor << " " ;
-    cout << edges_weight * (edges_total + edges_diff) /  new_edges_divisor << " ";
-    cout <<  classes_weight * new_imbalance_error * new_imbalance_error << " ";
-    cout << new_gay_frac << " ";
-    cout <<  (- edges_weight * edges_diff/new_edges_divisor  - classes_weight * imbalance_error_diff) << " ";
+    //cerr << edges_weight * (edges_total + edges_diff) /  new_edges_divisor << " ";
+    //cerr <<  classes_weight * new_imbalance_error * new_imbalance_error << " ";
+    //cerr << new_gay_frac << " ";
+    //cerr <<  (- edges_weight * edges_diff/new_edges_divisor  - classes_weight * imbalance_error_diff) << " ";
     //return  - edges_weight * edges_diff/new_edges_divisor  - classes_weight * imbalance_error_diff;
     return  - (edges_weight * ((edges_divisor-new_edges_divisor) * edges_total + edges_divisor * edges_diff)  /(new_edges_divisor * edges_divisor))  - classes_weight * imbalance_error_diff;
 
   }
-  
+
+  double getLogDiffEdgesWeight (double new_edges_weight) {
+    //double edges_part = (edges_weight -new_edges_weight) * edges_total /  edges_divisor;
+    //double classes_part = classes_weight * imbalance_error * imbalance_error;
+    // cout << "Oink Oink" << endl;
+    //cerr << edges_weight << " " << edges_total << " "  << edges_divisor  << " " << edges_part << " " << classes_part << " " << gay_fraction << " ";
+    return (edges_weight -new_edges_weight) * edges_total /  edges_divisor;
+  }
+
+  double getLogDiffClassesWeight (double new_classes_weight) {}
   void accept () {
     
     for (int i = 0; i < num_swaps; i++) {
@@ -306,6 +397,26 @@ int get_nodes (ifstream & file, int * inf, int numnodes) {
 }
 
 /*
+ * Loads node data from input file
+ */
+int get_nodes (ifstream & file, int * inf,  int numnodes, long * names) {
+  int total = 0;
+  //long la;
+  for (int j = 0; j < numnodes; j++) {
+    file >> names[j] >> inf[j];
+    //cerr << names << " " << inf[j] << endl;
+    //saved_inf[j] = new_inf[j] = inf[j];
+    total += inf[j];
+  }
+  /*if (all == 0) {
+    for (int j = numlabels; j < numnodes; j++) {
+      inf[j] = 0.0;
+    }
+    }*/
+  return total;
+}
+
+/*
  * Initialize and run the sampling loop
  */
 void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance, double gayweight, double labweight, int greedy, double edges_weight, double classes_weight) {
@@ -347,32 +458,34 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
   }
 
   file >> s >> numlabels;
-  cout << "num_nodes: " << numnodes << endl;
+  cerr << "num_nodes: " << numnodes << endl;
   int * labels = new int[numnodes];
-  get_nodes (file, labels, numnodes);
+  long * names = new long[numnodes];
   
+  get_nodes (file, labels, numnodes, names);
+ 
   file >> s >> numtestlabels;
-  cout << "num_test_labels: " << numtestlabels << endl;
+  cerr << "num_test_labels: " << numtestlabels << endl;
   int test_labels[numtestlabels];
   int diff = get_nodes (file, test_labels, numtestlabels);
-  cout << "diff: " << diff << endl;
+  cerr << "diff: " << diff << endl;
   double numPos = (numtestlabels + diff) / 2.0;
   double numNeg = (numtestlabels - diff) / 2.0;
-  cout << numtestlabels << " " << numPos << " " << numNeg <<  endl;
+  cerr << numtestlabels << " " << numPos << " " << numNeg <<  endl;
 
   Model model (g, labels, gayweight, labweight, numlabels, edgeweight, edges_weight, classes_weight);
 
   double lastProb = model.getLogProb(labels);
-  cout << endl;
+  //cerr << endl;
   double minProb = lastProb;
  
-  long iterations = 0;
+  //long iterations = 0;
   
   
   //////////////////////////////
   // Main loop
   //
-  while (true) {
+  for (long iterations = 0; iterations < 10000000; iterations++) {
 
     /////////////////////////////////////
     // Make a copy of the current labels
@@ -389,14 +502,34 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     /////////////////////////////////
     // Choose nodes to change
     //
+    /* The old way; reenable at some point 
     int changes[num_swaps];
     choose (numnodes - numlabels, num_swaps, changes);
-    /*
-    // DEBUG
     for (int i = 0; i < num_swaps; i++) {
-      changes[i] = numlabels + i;
+      changes[i] += numlabels;
     }
     */
+    
+    // The new way
+    TInt ego = my_random.GetUniDevInt(numnodes - numlabels) + numlabels;
+    TUNGraph::TNodeI n = g->GetNI(ego);
+    TInt neighborhood_size = n.GetDeg();
+    num_swaps = 1;
+    for (int i = 0; i < neighborhood_size; i++) {
+      	  TInt alter = n.GetNbrNId(i);
+	  if (alter >= numlabels) num_swaps++;
+    }
+    int changes[num_swaps];
+    int index = 1;
+    for (int i = 0; i < neighborhood_size; i++) {
+       TInt alter = n.GetNbrNId(i);
+       if (alter >= numlabels) {
+      	  changes[index] = alter;
+	  index++;
+       }
+    }
+    changes[0] = ego;
+    // End new way
     double condiff = 1;  // Stores p(x | x') / p(x' | x)
     int gayswap = 0, straightswap = 0;
     TFlt balance;
@@ -405,8 +538,7 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     }
     else balance = ballance;
     for (int i = 0; i < num_swaps; i++) {
-      int ego = changes[i] + numlabels;
-      changes[i] += numlabels;
+      int ego = changes[i];
       if (flip == 1) {
 	
 	model.temp_labels[ego] = -model.labels[ego];
@@ -438,6 +570,8 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     //
     int correctPos = 0;
     int correctNeg = 0;
+    int falsePos = 0;
+    int falseNeg = 0;
     for (int i = numlabels; i < numlabels + numtestlabels; i++) {
       if (test_labels[i-numlabels] == model.labels[i]) {
 	if (model.labels[i] == 1) {
@@ -445,6 +579,14 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
 	}
 	else {
 	  correctNeg += 1;
+	}
+      }
+      else {
+	if (model.labels[i] == 1) {
+	  falsePos += 1;
+	}
+	else {
+	  falseNeg += 1;
 	}
       }
     }
@@ -456,19 +598,23 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     //double newProb = model.getLogProb(model.temp_labels);
     //double diffy  = newProb - lastProb;
     double diffy =  model.getLogDiff(num_swaps, changes);
-    cout << diffy << " ";
     // cout << "( " << lastProb << " ) ";
     double probDif = exp(diffy);
     double probRat = probDif * condiff ;
     TFlt prob = my_random.GetUniDev ();
     
 
-    if (iterations % 1 == 0) {
-      cout  <<  gayswap << " " << probDif <<  " " <<  probRat << " " << prob << " " << minProb << " "
-	    << lastProb << " " << (correctPos/numPos) << " " << (correctNeg/numNeg) << " " << greedy << endl;
-      cout << flush;
+    if (iterations % 1000 == 0) {
+     cerr << diffy << " ";
+     cerr  <<  gayswap << " " << probDif <<  " " <<  probRat << " " << prob << " " << minProb << " "
+	   << lastProb << " " << (correctPos/float(correctPos + falsePos)) << " " << (correctPos/float(correctPos + falseNeg))  << " " << (falsePos/float(falsePos + correctNeg)) << " " << (correctNeg/numNeg) << endl;
+      cerr << flush;
     }
-    iterations++;
+
+    if (iterations % 1000 == 0) {
+      model.poll();
+    }
+    
     
     /*
     // uncomment me to print out the values of all nodes.
@@ -498,7 +644,7 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
    
     minProb = lastProb > minProb ? lastProb : minProb;
   }
- 
+  model.report(numtestlabels, test_labels);
 }
 
 
