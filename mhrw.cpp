@@ -32,6 +32,7 @@ private:
   double * node_total_similarity;
   double * node_diff_similarity;
   double edges_diff;
+  double * stats;
   int num_swaps;
   int * changes;
   TFlt new_imbalance_error;
@@ -49,7 +50,7 @@ public:
     edge_weights = new double[p->GetNodes()];
     node_total_similarity = new double[p->GetNodes()];
     node_diff_similarity = new double[p->GetNodes()];
-    
+    stats = new double[p->GetNodes()];
     for (int i = 0; i < p->GetNodes(); i++) {
       temp_labels [i] = 0;
       node_diff_similarity[i] = 0;

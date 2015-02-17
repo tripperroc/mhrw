@@ -79,18 +79,13 @@ def label_by_weighted_voting4 (u, ep, test_labeled):
             both += 1
         
         logfile.write ("%d: degree: %d, priority: %f, gay: %s; straight %s\n" % (ego, u.degree(ego), score, str(gay_list), str(straight_list)))
-        print "%d %d %f %f %f %f"  % (ego, u.degree(ego), u.node[ego]["gay_weight"], u.node[ego]["straight_weight"] , u.node[ego]["total_weight"], u.node[ego]["orientation"] )
+        #print "%d %d %f %f %f %f"  % (ego, u.degree(ego), u.node[ego]["gay_weight"], u.node[ego]["straight_weight"] , u.node[ego]["total_weight"], u.node[ego]["orientation"] )
         #priority = -float(count)/float(len(u.neighbors(ego)))
     logfile.close()
 
-    for ego in u:
-        if u.node[ego]["orientation"] > -.1:
-            u.node[ego]["orientation"] = 1;
-        else:
-            u.node[ego]["orientation"] = -1;
 
     
-    print "both: %d" % both
+    #print "both: %d" % both
     return u
 
 
@@ -185,10 +180,26 @@ def main():
     #u = label_by_weighted_voting (u, float(sys.argv[5]))
     #u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled)
     u = label_by_weighted_voting4 (u, float(sys.argv[5]), test_labeled)
-    dump_tests (u, test_labeled)
+    for x in range(-10, 11):
+        threshold = float(x)/10.0
+        v = u.copy()
+        for ego in test_labeled:
+            if v.node[ego]["orientation"] > threshold:
+                v.node[ego]["orientation"] = 1
+            else:
+                v.node[ego]["orientation"] = -1
+
+        sys.stdout.write ("%f " % threshold)
+        dump_tests (v, test_labeled)
     #u = label_by_revoting (u, float(sys.argv[5]), test_labeled)
     #dump_tests (u, test_labeled)
-    
+
+    for ego in u:
+        if u.node[ego]["orientation"] > 0:
+            u.node[ego]["orientation"] = 1;
+        else:
+            u.node[ego]["orientation"] = -1;
+
     write_to_snap (sys.argv[4], u, node_trans, node_untrans, labeled, test_labels, float(sys.argv[5]))
     
 

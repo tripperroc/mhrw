@@ -150,8 +150,28 @@ def dump_tests (u, test_labeled):
             else:
                 straight_unlabeled += 1
 
-    
-    print "%d %d %d %d %d %d" % (gay_labeled_gay, gay_labeled_straight, gay_unlabeled, straight_labeled_gay, straight_labeled_straight, straight_unlabeled)
+    accuracy = float(gay_labeled_gay + straight_labeled_straight) / float(gay_labeled_gay + straight_labeled_gay + gay_labeled_straight + straight_labeled_straight)
+    if gay_labeled_gay + straight_labeled_gay == 0:
+        precision = 0.0
+    else:
+        precision = float(gay_labeled_gay) / float (gay_labeled_gay + straight_labeled_gay)
+    if gay_labeled_gay + gay_labeled_straight == 0:
+        recall = 0.0
+    else:
+        recall = float(gay_labeled_gay)/ float(gay_labeled_gay + gay_labeled_straight)
+    if straight_labeled_gay + straight_labeled_straight == 0:
+        false_positive = 0.0
+    else:
+        false_positive = float(straight_labeled_gay)/float(straight_labeled_gay + straight_labeled_straight)
+    if gay_labeled_gay + gay_labeled_straight == 0:
+        true_positive = 0.0
+    else:
+        true_positive = float(gay_labeled_gay)/float(gay_labeled_gay + gay_labeled_straight)
+    if precision + recall == 0:
+        f = 0
+    else:
+        f = 2.0 * precision * recall / (precision + recall)
+    print "%d %d %d %d %d %d %f %f %f %f %f %f" % (gay_labeled_gay, gay_labeled_straight, gay_unlabeled, straight_labeled_gay, straight_labeled_straight, straight_unlabeled, accuracy, f, precision, recall, true_positive, false_positive)
     
 
 def label_by_revoting (u, ep, test_labeled):

@@ -34,18 +34,16 @@
 
 
 # Your job script goes below this line.
-export DATE=$1; export K=$2; export LABEL=$3; export EP=$4; export INIT=$6; 
+	  
+export EP=$1; export INIT=$2;
 MYPYTHONPATH=/home/choman/.local/lib/python2.6/site-packages
 export PYTHONPATH=${PYTHONPATH}:${MYPYTHONPATH}
-python -OO write_snap${INIT}.py orientation-${DATE}-train.txt orientation-${DATE}-heldout.txt ${DATE}_twitter_graph.pkl ${DATE}_gd_snap.${LABEL}.${INIT}.graph ${EP} ${DATE}_labeled_twitter_graph.${LABEL}.${INIT}.pkl ${DATE}_twitter_snap_translations.${LABEL}.${INIT}.pkl
-for p in 0 1
-do
-    for q in 0 1
-    do
-       export PROP=${p};
-       #make ${DATE}_$5_snap.${LABEL}.${INIT}.${PROP}.prop
-       #make ${DATE}_$5_snap.${LABEL}.${INIT}.graph
-       #make ${DATE}_twitter_graph.pkl
-       ./newty -file:${DATE}_gd_snap.${LABEL}.${INIT}.graph -discrete:${PROP} > ${DATE}_gd_snap.${LABEL}.${INIT}.${PROP}.prop
-    done
-done
+
+python -OO write_snap${INIT}.py orientation-train.txt orientation-heldout.txt ${DATE}_twitter_graph.pkl ${DATE}_D-${EP}_I-${INIT}.graph ${EP} ${DATE}_labeled_twitter_graph_D-${EP}_I-${INIT}.pkl ${DATE}_twitter_snap_trans_D-${LABEL}_I-${INIT}.pkl > 02-2015_D-${deg}_I-${init}.init_results
+
+./newty -file:${DATE}_D-${EP}_I-${INIT}.graph -discrete:1 > 02-2015_D-${deg}_I-${init}_disc.iter_results
+
+if [ "$INIT" == "3" ]
+then
+    ./newty -file:${DATE}_D-${EP}_I-${INIT}.graph -discrete:0 > 02-2015_D-${deg}_I-${init}_cont.iter_results
+fi

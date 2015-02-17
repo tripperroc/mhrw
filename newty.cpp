@@ -49,13 +49,19 @@ public:
     }
   }
 
+  void reset (double * saved) {
+    for (int i = 0; i < p->GetNodes(); i++) {
+      labels[i] = saved[i];
+    }
+  }
+  
   ~Model () {
     // delete temp_labels;
   }
   /*
    * Calculates the log probability of a given label set
    */
-  double tic  () {
+  double tic  (float thresh) {
     
     int gay_labeled_gay = 0,
       gay_labeled_straight = 0,
@@ -80,7 +86,7 @@ public:
 	  double neighbor_weight = edgeweight.GetDat(TPair<TInt, TInt>(min(ego,alter), max(ego,alter)));
 	  new_labels[ego] += neighbor_weight * labels[alter]/edge_weights[ego];
 	}
-	if (discrete == 1) new_labels[ego] = new_labels[ego] > 0 ? 1 : -1;
+	if (discrete == 1) new_labels[ego] = new_labels[ego] > thresh ? 1 : -1;
 	double duh = labels[ego]-new_labels[ego];
 	duh = duh < 0 ? -duh : duh;
 	total_err += duh;
@@ -101,7 +107,7 @@ public:
       }
     }
 
-    cout << total_err << " "
+    /* cout << total_err << " "
 	 <<  gay_labeled_gay << " "
 	 <<  gay_labeled_straight << " "
 	 <<  gay_unlabeled << " "
@@ -109,7 +115,7 @@ public:
 	 <<  straight_labeled_straight << " "
 	 <<  straight_unlabeled << " "
 	 <<  endl;
-    
+    */
     double * swap = new_labels;
     new_labels = labels;
     labels = swap;
@@ -121,24 +127,87 @@ public:
     }
   }
 
+  void compute_stats (float thresh) {
+    int gay_labeled_gay = 0,
+      gay_labeled_straight = 0,
+      gay_unlabeled = 0,
+      straight_labeled_straight = 0,
+      straight_labeled_gay = 0,
+      straight_unlabeled = 0;
+
+    for (int ego = numlabels; ego < numlabels + numtestlabels; ego++) {
+ 
+      TInt ego2 = ego - numlabels;
+      if (test_labels[ego2] > 0) {
+	if (labels[ego] > thresh) gay_labeled_gay++;
+	else if (labels[ego] <= thresh) gay_labeled_straight++;
+	else gay_unlabeled++;
+      }
+      if (test_labels[ego2] < 0) {
+	if (labels[ego] > thresh) straight_labeled_gay++;
+	else if (labels[ego] <= thresh) straight_labeled_straight++;
+	else straight_unlabeled++;
+      }	    
+    }
+
+    double accuracy, f, precision, recall, true_positive, false_positive;
+
+    accuracy = float(gay_labeled_gay + straight_labeled_straight) / float(gay_labeled_gay + straight_labeled_gay + gay_labeled_straight + straight_labeled_straight);
+
+    if (gay_labeled_gay + straight_labeled_gay == 0)
+      precision = 0.0;
+    else
+      precision = float(gay_labeled_gay) / float (gay_labeled_gay + straight_labeled_gay);
+    if (gay_labeled_gay + gay_labeled_straight == 0)
+      recall = 0.0;
+    else
+      recall = float(gay_labeled_gay)/ float(gay_labeled_gay + gay_labeled_straight);
+    if (straight_labeled_gay + straight_labeled_straight == 0)
+      false_positive = 0.0;
+    else
+      false_positive = float(straight_labeled_gay)/float(straight_labeled_gay + straight_labeled_straight);
+    if (gay_labeled_gay + gay_labeled_straight == 0)
+      true_positive = 0.0;
+    else
+      true_positive = float(gay_labeled_gay)/float(gay_labeled_gay + gay_labeled_straight);
+    if (precision + recall == 0)
+      f = 0;
+    else
+      f = 2.0 * precision * recall / (precision + recall);
+
+    cout <<  gay_labeled_gay << " "
+	 <<  gay_labeled_straight << " "
+	 <<  gay_unlabeled << " "
+	 <<  straight_labeled_gay  << " "
+	 <<  straight_labeled_straight << " "
+	 <<  straight_unlabeled << " "
+         <<  accuracy << " "
+	 <<  f << " "
+         <<  precision << " "
+	 <<  recall << " "
+	 <<  true_positive << " "
+	 <<  false_positive
+	 <<  endl;
+    
+  }
 };
  
 
 /*
  * Loads node data from input file
  */
-int get_nodes (ifstream & file, double * inf, double * new_inf,  int numnodes, int numlabels, int all, long * names) {
+int get_nodes (ifstream & file, double * inf, double * new_inf, double *saved_inf,  int numnodes, int numlabels, int all, long * names) {
   int total = 0;
   //long la;
   for (int j = 0; j < numnodes; j++) {
     file >> names[j] >> inf[j];
     //cerr << names << " " << inf[j] << endl;
-    new_inf[j] = inf[j];
+    saved_inf[j] = new_inf[j] = inf[j];
     total += inf[j];
   }
   if (all == 0) {
     for (int j = numlabels; j < numnodes; j++) {
-      new_inf[j] = inf[j] = 0.0;
+      saved_inf[j] = new_inf[j] = inf[j] = 0.0;
     }
   }
   return total;
@@ -184,7 +253,6 @@ void run_mhrw ( const char * input_name, int all, int discrete) {
     g->AddNode(i);
   }
 
-  cerr << "here, at least" << endl;
   int u,v;
   double w;
   THash<TPair<TInt, TInt>, float> edgeweight;
@@ -199,24 +267,25 @@ void run_mhrw ( const char * input_name, int all, int discrete) {
 
   file >> s >> numlabels;
   cerr << "num_labels: " << numlabels << endl;
+  double * saved_labels = new double[numnodes];
   double * labels = new double[numnodes];
   double * newlabels = new double[numnodes];
   long * names = new long[numnodes];
-  cerr << "here" << endl;
-  get_nodes (file, labels, newlabels, numnodes, numlabels, all, names);
+  
+  get_nodes (file, labels, newlabels, saved_labels, numnodes, numlabels, all, names);
   
   file >> s >> numtestlabels;
-  cout << "num_test_labels: " << numtestlabels << endl;
+  cerr << "num_test_labels: " << numtestlabels << endl;
   int test_labels[numtestlabels];
   int diff = get_nodes (file, test_labels, numtestlabels);
 
   
   
   
-  cout << "diff: " << diff << endl;
+  cerr << "diff: " << diff << endl;
   double numPos = (numtestlabels + diff) / 2.0;
   double numNeg = (numtestlabels - diff) / 2.0;
-  cout << numtestlabels << " " << numPos << " " << numNeg <<  endl;
+  cerr << numtestlabels << " " << numPos << " " << numNeg <<  endl;
 
   Model model (g, labels, newlabels, numlabels, edgeweight, numtestlabels, test_labels, discrete);
 
@@ -225,11 +294,28 @@ void run_mhrw ( const char * input_name, int all, int discrete) {
   // Main loop
   //
   double err;
-  do {
-    err = model.tic();
-    reps++;
-  } while (err > 1);
- 
+  if (discrete == 0) {
+    do {
+      err = model.tic(0);
+      reps++;
+    } while (err > 1);
+
+    for (float i = -1; i <= 1; i += .02) {
+      cout << i << " ";
+      model.compute_stats (i);
+    }
+  }
+  else {
+    for (float i = -1; i <= 1; i += .02) {
+      do {
+	err = model.tic(i);
+	reps++;
+      } while (err > 1);
+      cout << i << " ";
+      model.compute_stats (0);
+      model.reset(saved_labels);
+    }
+  }
 }
 
 
@@ -251,4 +337,5 @@ int main(int argc, char* argv[]) {
 
   
   run_mhrw (input_name(), all, discrete);
+ 
 }

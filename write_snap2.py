@@ -15,7 +15,7 @@ from snap_write import *
 
 
 
-def label_by_weighted_voting2 (u, ep, test_labeled):
+def label_by_weighted_voting2 (u, ep, test_labeled, threshold):
 
     gay_labeled_gay = 0
     gay_labeled_straight = 0
@@ -74,7 +74,7 @@ def label_by_weighted_voting2 (u, ep, test_labeled):
 
                 priority =  -(priority * float(u.node[alter]["total_weight"]) + float((u[ego][alter]["embeddedness"])**ep))/float(u.node[alter]["total_weight"])
                 unlabeled[alter] = priority
-        if u.node[ego]["gay_weight"] > u.node[ego]["straight_weight"]:
+        if float(u.node[ego]["gay_weight"] -u.node[ego]["straight_weight"])/float(u.node[ego]["total_weight"]) > threshold:
             u.node[ego]["orientation"] = 1
             logfile.write ("GAY\t\t");
             gay_count += 1
@@ -82,7 +82,7 @@ def label_by_weighted_voting2 (u, ep, test_labeled):
             u.node[ego]["orientation"] = -1
             logfile.write ("STRAIGHT\t");
             straight_count += 1
-        
+     
         if ego in test_labeled:
             if u.node[ego]["orientation"] == 1:
                 if u.node[ego]["test_orientation"] == 1:
@@ -95,7 +95,7 @@ def label_by_weighted_voting2 (u, ep, test_labeled):
                 else:
                     straight_labeled_straight += 1
         logfile.write ("%d: degree: %d, priority: %f, gay: %s; straight %s\n" % (ego, u.degree(ego), score, str(gay_list), str(straight_list)))
-        print "%d %d %f %d %d %d %d %d %d"  % (ego, u.degree(ego) , u.node[ego]["total_weight"], gay_count, straight_count, gay_labeled_gay, gay_labeled_straight, straight_labeled_gay, straight_labeled_straight)
+        #print "%d %d %f %d %d %d %d %d %d"  % (ego, u.degree(ego) , u.node[ego]["total_weight"], gay_count, straight_count, gay_labeled_gay, gay_labeled_straight, straight_labeled_gay, straight_labeled_straight)
         #priority = -float(count)/float(len(u.neighbors(ego)))
     logfile.close()
 
@@ -191,11 +191,16 @@ def main():
     #u = label_by_voting (u)
     #u = label_by_weighted_voting (u, float(sys.argv[5]))
     #u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled)
-    u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled)
-    dump_tests (u, test_labeled)
+    for x in range(-10, 11):
+        threshold = float(x)/10.0
+        v = u.copy()
+        v = label_by_weighted_voting2 (v, float(sys.argv[5]), test_labeled, threshold)
+        sys.stdout.write ("%f " % threshold)
+        dump_tests (v, test_labeled)
     #u = label_by_revoting (u, float(sys.argv[5]), test_labeled)
     #dump_tests (u, test_labeled)
-    
+
+    u = label_by_weighted_voting2 (u, float(sys.argv[5]), test_labeled, 0)
     write_to_snap (sys.argv[4], u, node_trans, node_untrans, labeled, test_labels, float(sys.argv[5]))
     
 
