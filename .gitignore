@@ -9,6 +9,7 @@ clique_graph
 *.outx
 *.prop
 *.out
+*.init_results
 *.iter_results
 *.new_results
 *.err
