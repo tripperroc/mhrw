@@ -9,7 +9,8 @@ clique_graph
 *.outx
 *.prop
 *.out
-*.*results
+*.iter_results
+*.new_results
 *.err
 mhrw
 urdata
