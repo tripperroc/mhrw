@@ -43,8 +43,11 @@ public:
   double gay_fraction;
   double target_gay_fraction;
   long num_times;
+<<<<<<< HEAD
   double edges_weight;
   double classes_weight;
+=======
+>>>>>>> d8ace34ad0f8f3fdd963ffbf1dea12a90873818b
   
   Model (PUNGraph p, int * labels, double gayweight, double labweight, int numlabels, THash<TPair<TInt, TInt>, float> edgeweight, double edges_weight, double classes_weight): p(p), labels(labels), gayweight(gayweight), labweight(labweight), numlabels(numlabels), edgeweight(edgeweight), edges_weight(edges_weight), classes_weight(classes_weight), target_gay_fraction(.1), num_times(0) {
     temp_labels = new int[p->GetNodes()];
@@ -485,7 +488,11 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
   //////////////////////////////
   // Main loop
   //
+<<<<<<< HEAD
   for (long iterations = 0; iterations < 10000000; iterations++) {
+=======
+  for (long iterations = 0; iterations < 100000; iterations++) {
+>>>>>>> d8ace34ad0f8f3fdd963ffbf1dea12a90873818b
 
     /////////////////////////////////////
     // Make a copy of the current labels
@@ -607,6 +614,7 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     if (iterations % 1000 == 0) {
      cerr << diffy << " ";
      cerr  <<  gayswap << " " << probDif <<  " " <<  probRat << " " << prob << " " << minProb << " "
+<<<<<<< HEAD
 	   << lastProb << " " << (correctPos/float(correctPos + falsePos)) << " " << (correctPos/float(correctPos + falseNeg))  << " " << (falsePos/float(falsePos + correctNeg)) << " " << (correctNeg/numNeg) << endl;
       cerr << flush;
     }
@@ -614,6 +622,15 @@ void run_mhrw ( const char * input_name, int num_swaps, int flip, TFlt ballance,
     if (iterations % 1000 == 0) {
       model.poll();
     }
+=======
+	    << lastProb << " " << (correctPos/numPos) << " " << (correctNeg/numNeg) << " " << greedy << endl;
+      cerr << flush;
+    }
+
+    if (iterations % 1000 == 0) {
+      model.poll();
+    }
+>>>>>>> d8ace34ad0f8f3fdd963ffbf1dea12a90873818b
     
     
     /*
