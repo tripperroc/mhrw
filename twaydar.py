@@ -1,5 +1,5 @@
-# Filters twitter json file text field 
-# python -OO twep.py TWITTER_FILE REGEX
+# Filters twitter json profiles file for sexual orientation based on keyword
+# python -OO gaydar.py master_user_list.json
 
 # usage:
 # export PYTHONIOENCODING=utf-8; python twaydar.py TWITTER_USER_FILE
