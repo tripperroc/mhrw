@@ -16,6 +16,13 @@ You need the following files.
 * 02-2015_master_user_list.json
 * 02-2015_social_graph.json
 
+These are located, for instance, on
+
+* cycle1.cs.rochester.edu
+
+in
+
+* /p/twitter4/rochester/02-2015
 
 To build the larger neighborhood graph, type
 
