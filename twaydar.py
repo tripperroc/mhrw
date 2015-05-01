@@ -12,7 +12,7 @@ import json
 def printout (orientation, key, value):
     description = value["description"].replace("\n", " ")
     description = description.replace('\r', '')
-    sys.stdout.write(orientation + "\t" + description + "\t" + key)
+    sys.stdout.write(orientation + "\t" + description.encode('utf-8') + "\t" + key.encode('utf-8'))
                 
     sys.stdout.write("\t")
     if "profile_image_url" in value:
@@ -26,8 +26,10 @@ def printout (orientation, key, value):
                 
     sys.stdout.write("\n")
 
+j = dict()
               
 def main():
+    global j
     lmtzr = nltk.stem.wordnet.WordNetLemmatizer()
     f = file (sys.argv[1])
     j = json.load(f)

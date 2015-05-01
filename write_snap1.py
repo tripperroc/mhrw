@@ -140,7 +140,7 @@ def main():
     # put the labeled training nodes first, followed by test nodes,
     # followed by the rest
     #
-    # Not that u is not actually relabeled. The labels are applied
+    # Note that u is not actually relabeled. The labels are applied
     # when the output file is written.
     #
     count = 0
