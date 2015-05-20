@@ -93,3 +93,130 @@ def build_neighbor_graph (labeled_data_name, graph_pkl_name):
     print len(u)
     return u
 
+def read_json_graph (graph_data):
+
+   #graph_data.seek(0)
+   #global u
+   nodes = set ()
+   #global l
+   while True:
+        line = graph_data.readline()
+        if line == "":
+            break
+        try:
+            j = json.loads(line)
+            nodes.add(int(j["user_id"]))
+
+        except ValueError:
+            pass
+   u = nx.Graph()
+
+   graph_data.seek(0)
+   while True:
+        line = graph_data.readline()
+        if line == "":
+            break
+        #print line
+        try:
+            j = json.loads(line)
+            ego = int(j["user_id"])
+            u.add_node(ego)
+            u.node[ego]["position"] = "core"
+            for neighbor in set(j["follower_ids"]).intersection(set(j["friend_ids"])):
+                if ego != neighbor:
+                    u.add_edge(ego, neighbor)
+                    if not neighbor in nodes:
+                        u.node[ego]["position"] = "fringe"
+
+            u.node[ego]["local"] = True
+        except ValueError:
+            pass
+
+   return u
+
+## START HERE
+def read_likely_possible_graph (graph_data, likely_users, possible_users):
+
+   extended_users = set()
+   u = nx.Graph()
+   while True:
+        line = graph_data.readline()
+        if line == "":
+            break
+        #print line
+        try:
+            j = json.loads(line)
+            ego = int(j["user_id"])
+            if u in likely_users:
+                u.add_node(ego)
+                u.node[ego]["position"] = "core"
+                for neighbor in set(j["follower_ids"]).intersection(set(j["friend_ids"])):
+                    if ego != neighbor:
+                        u.add_edge(ego, neighbor)
+                        if not neighbor in likely_users:
+                            if not neighbor in possible_users:
+                                u.node[neighbor]["position"] = "fringe"
+                            else:
+                                u.node[neighbor]["position"] = "extended"
+                                extended_users.add(neighbor)
+        except ValueError:
+            pass
+   
+   return (u, extended_users)
+
+def read_core_graph (graph_data):
+   #global u
+   nodes = set ()
+   #global l
+   u = nx.Graph()
+
+   
+   while True:
+        line = graph_data.readline()
+        if line == "":
+            break
+        try:
+            j = json.loads(line)
+            nodes.add(int(j["user_id"]))
+
+        except ValueError:
+            pass
+
+   graph_data.seek(0)
+   while True:
+        line = graph_data.readline()
+        if line == "":
+            break
+        #print line
+        try:
+            j = json.loads(line)
+            ego = int(j["user_id"])
+            u.add_node(ego)
+            for neighbor in set(j["follower_ids"]).intersection(set(j["friend_ids"])).intersection(nodes):
+                if neighbor != ego:
+                    u.add_edge(ego, neighbor)
+            u.node[ego]["local"] = True
+        except ValueError:
+            pass
+
+   return u
+
+def read_json_graph_nonrecip(f):
+   u = nx.DiGraph()
+   while True:
+        line = f.readline()
+        if line == "":
+            break
+        #print line
+        try:
+            j = json.loads(line)
+            ego = int(j["user_id"])
+            u.add_node(ego)
+            for neighbor in set(j["friend_ids"]).difference(j["follower_ids"]):
+                if neighbor != ego:
+                    u.add_edge(ego, neighbor)
+            #u.node[ego]["local"] = True
+        except ValueError:
+            pass
+
+   return u

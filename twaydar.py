@@ -41,9 +41,14 @@ def main():
             tokens = frozenset(tokens)
             if tokens & frozenset({"homosexual", "homo", "lesbian", "dike", "gay"}):
                 printout("Gay", key, value)
+                j[key]["orientation"] = "Gay"
             if tokens & {"straight", "heterosexual", "husband", "wife"}:
                 printout("Straight", key, value)
+                j[key]["orientation"] = "Straight"
     f.close()
 
+    f = file (sys.argv[1], 'w')
+    json.dump(j,f)
+    
 if __name__ == "__main__":
     main()
