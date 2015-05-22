@@ -135,10 +135,10 @@ def read_json_graph (graph_data):
    return u
 
 ## START HERE
-def read_likely_possible_graph (graph_data, likely_users, possible_users):
+def read_likely_possible_graph (graph_data, likely_core_graph, possible_core_graph):
 
    extended_users = set()
-   u = nx.Graph()
+   u = nx.Graph(likely_core_graph)
    while True:
         line = graph_data.readline()
         if line == "":
@@ -147,18 +147,17 @@ def read_likely_possible_graph (graph_data, likely_users, possible_users):
         try:
             j = json.loads(line)
             ego = int(j["user_id"])
-            if u in likely_users:
-                u.add_node(ego)
-                u.node[ego]["position"] = "core"
-                for neighbor in set(j["follower_ids"]).intersection(set(j["friend_ids"])):
+            if u in likely_core_graph:
+                #u.add_node(ego)
+                #u.node[ego]["position"] = "core"
+                for neighbor in (set(j["follower_ids"]).intersection(set(j["friend_ids"]))).difference(set(like_core_graph.neighbors(ego))):
                     if ego != neighbor:
                         u.add_edge(ego, neighbor)
-                        if not neighbor in likely_users:
-                            if not neighbor in possible_users:
-                                u.node[neighbor]["position"] = "fringe"
-                            else:
-                                u.node[neighbor]["position"] = "extended"
-                                extended_users.add(neighbor)
+                        if not neighbor in possible_users:
+                            u.node[neighbor]["position"] = "fringe"
+                        else:
+                            u.node[neighbor]["position"] = "extended"
+                            extended_users.add(neighbor)
         except ValueError:
             pass
    
@@ -195,7 +194,7 @@ def read_core_graph (graph_data):
             for neighbor in set(j["follower_ids"]).intersection(set(j["friend_ids"])).intersection(nodes):
                 if neighbor != ego:
                     u.add_edge(ego, neighbor)
-            u.node[ego]["local"] = True
+            u.node[ego]["position"] = "core"
         except ValueError:
             pass
 
