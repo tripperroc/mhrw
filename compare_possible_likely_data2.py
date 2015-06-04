@@ -69,7 +69,7 @@ def main():
         lcc = l[0]
         #print  
 
-        f = open(prefix + graph.graph["name"] + ".pkl", "w")
+        f = open(prefix + "_" + graph.graph["name"] + ".pkl", "w")
         pickle.dump (lcc, f)
         f.close()
 

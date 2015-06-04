@@ -1,0 +1,20 @@
+\documentclass{article}
+
+\begin{document}
+\emph{Feature extraction} is the conversion of raw data into the feature space of a machine learning model. 
+%Often the performance of machine learning algorithms, in terms of both accuracy and resource consumption benefits from 
+An often necessary---and, in terms of both better accuracy and resource consumption, subtask is to reduce the dimensions
+(or information) of the raw data. For example, support vector machines often perform better on natural language data when stop
+words or removed, or when the vocabulary space has been reduced by, say, principle components or latent Dirichlet analysis.
+
+In this paper we explore the use of graphical constraints to reduce the dimensionality of feature space of social media data.
+
+
+In social media data, a crucial decision is how to extract a social network from the data. One can then apply any number of 
+machine learning algorithms that are well suited to network data, such as label propagation or Baye's networks (often by using a small 
+number of network templates we global contraints between them). Traditionally, machine learning has focused on how learning
+outcomes differ as the learning model varies and the process of converting raw data into the learning model feature space is taken 
+for granted. In this paper, we show that with graphical data, feature extraction based on global network features
+such as core number, Cheeger constant, can lead to dramatic improvement in learning situations, even when the actual learning algorithm and 
+and feature space remains the same. 
+\end{document}

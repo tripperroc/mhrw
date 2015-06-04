@@ -8,7 +8,8 @@ import json
 import operator
 import numpy
 from sklearn import datasets
-from sklearn.semi_supervised import LabelPropagation
+from sklearn.semi_supervised import LabelPropagation, LabelSpreading
+from sklearn.metrics import classification_report, confusion_matrix
 
 u = nx.DiGraph()
 w = nx.Graph()
@@ -34,15 +35,23 @@ entities = set ()
 entity_given_gay = dict()
 neighbors = set()
 users = dict()
+testing_users = dict()
+training_users = dict()
 labeled_users  = dict()
 gay_apriori = float()
-
-label_prop_model = LabelPropagation()
+m = nx.adjacency_matrix(nx.complete_graph(1))
+label_prop_model = LabelSpreading()
 g = nx.Graph()
 labels = list()
-
+real_labels = list()
+predicted_labels = list()
+cm = confusion_matrix([],[])
 def main():
     global v
+    global m
+    global cm
+    global real_labels
+    global predicted_labels
     global u
     global ents
     global ids
@@ -61,7 +70,8 @@ def main():
     global entity_given_gay
     global neighbors 
     global pr_gay
-    global users
+    global training_users
+    global testing_users
     global labeled_users
     global gay_apriori
     global label_prop_model
@@ -82,11 +92,29 @@ def main():
     users = {int(k):v for k,v in users.items()}
 
     labeled_users = {k: v for k,v in users.items() if "orientation" in v and k in g}
-    (users, testing_users) = split(labeled_users, "orientation", {"Straight", "Gay"})
-    straight_users = {k: v for k,v in users.items() if v["orientation"] == "Straight"}
-    gay_users = {k: v for k,v in users.items() if v["orientation"] == "Gay"}
+    (training_users, testing_users) = split(labeled_users, "orientation", {"Straight", "Gay"})
+    straight_users = {k: v for k,v in training_users.items() if v["orientation"] == "Straight"}
+    gay_users = {k: v for k,v in training_users.items() if v["orientation"] == "Gay"}
+
+    real_labels = [1 if v["orientation"] == "Gay" else 0 for k,v in testing_users.items()]
+
+    i = 0
+    indx = dict()
+    for n in g.nodes():
+        indx[n] = i
+        i += 1
+        
 
     m = nx.adjacency_matrix(g)
-    labels = [1 if "orientation" in g.node[v] and g.node[v]["orientation"] == "Gay" else (0 if "orientation" in g.node[v] else -1) for v in g.nodes()]
+    labels = [1 if (v in training_users and "orientation" in training_users[v] and training_users[v]["orientation"] == "Gay") else (0 if (v in training_users and "orientation" in training_users[v]) else -1) for v in g.nodes()]
 
     label_prop_model.fit(m, labels)
+
+    predicted_labels = [label_prop_model.transduction_[indx[x]] for x in testing_users]
+
+    cm = confusion_matrix(real_labels, predicted_labels,labels=label_prop_model.classes_)
+
+    print cm
+    
+if __name__ == "__main__":
+    main()

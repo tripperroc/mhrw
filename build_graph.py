@@ -220,7 +220,7 @@ def read_json_graph_nonrecip(f):
 
    return u
 
-def read_json_graph_nonrecip_restricted_to(f, users):
+def read_json_graph_nonrecip_restricted_to(f, users, ids):
    u = nx.DiGraph()
    while True:
         line = f.readline()
@@ -233,17 +233,19 @@ def read_json_graph_nonrecip_restricted_to(f, users):
             if ego in users:
                 u.add_node(ego)
                 if "role" in u.node[ego] and  u.node[ego]["role"] == "entity":
-                    u.node[ego]["role"] = "both"
+                    #u.node[ego]["role"] = "user"
+                    u.node[ego]["role"] = "other"
                 else:
                     u.node[ego]["role"] = "user"
-                for neighbor in set(j["friend_ids"]).difference(j["follower_ids"]):
+                followers = set(j["follower_ids"])
+                friends = set(j["friend_ids"])
+                for neighbor in (friends - followers).union(friends & ids):
                     if neighbor != ego:
                         u.add_edge(ego, neighbor)
-                        if "role" in u.node[neighbor] and  u.node[neighbor]["role"] == "user":
-                            u.node[neighbor]["role"] = "both"
+                        if "role" in u.node[neighbor] and  u.node[neighbor]["role"] in {"user", "other"}:
+                            u.node[neighbor]["role"] = "other"
                         else:
                             u.node[neighbor]["role"] = "entity"
-                    #u.node[ego]["local"] = True
         except ValueError:
             pass
 
